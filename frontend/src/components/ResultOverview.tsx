@@ -12,7 +12,9 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { InteractiveCard } from "@/components/InteractiveCard";
 import { getLatestScore, getScoreHistory, ScoreHistoryEntry } from "@/lib/storage";
+import { useThemeMode } from "@/components/theme-mode";
 
 type ResultOverviewProps = {
   showExplanation?: boolean;
@@ -70,8 +72,10 @@ function getNeighborhoodDensity(score: number) {
 }
 
 export function ResultOverview({ showExplanation = true }: ResultOverviewProps) {
+  const { palette, mode } = useThemeMode();
   const [latest, setLatest] = useState<ScoreHistoryEntry | null>(null);
   const [history, setHistory] = useState<ScoreHistoryEntry[]>([]);
+  const isDark = mode === "dark";
 
   useEffect(() => {
     setLatest(getLatestScore());
@@ -120,24 +124,25 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
   return (
     <VStack spacing={8} align="stretch">
       {!history.length && (
-        <Alert borderRadius="18px" bg="rgba(245, 195, 86, 0.16)" color="#f6ead1">
+        <Alert borderRadius="18px" bg={isDark ? "rgba(245, 195, 86, 0.16)" : "rgba(242, 158, 8, 0.16)"} color={palette.pageText}>
           <AlertIcon />
           No live score found yet. Run an evaluation from the landing page to populate this result view.
         </Alert>
       )}
 
-      <Box
-        p={[7, 9]}
-        borderWidth="1px"
-        borderRadius="34px"
-        bg="rgba(16, 18, 24, 0.96)"
-        boxShadow="0 32px 90px rgba(0, 0, 0, 0.42)"
-      >
-        <Text color="#f6c45a" fontSize="sm" letterSpacing="0.18em" mb={6}>
+      <InteractiveCard tilt={5} scale={1.01}>
+        <Box
+          p={[7, 9]}
+          borderWidth="1px"
+          borderRadius="34px"
+          bg={palette.cardBg}
+          boxShadow={palette.cardShadow}
+        >
+        <Text color={palette.accent} fontSize="sm" letterSpacing="0.18em" mb={6}>
           VOUCH TRUST SCORE
         </Text>
         <VStack spacing={6} align="center">
-          <Text color="#d9c79d" fontSize="sm" letterSpacing="0.16em" textAlign="center">
+          <Text color={palette.mutedText} fontSize="sm" letterSpacing="0.16em" textAlign="center">
             LIVE TRUST OUTCOME
           </Text>
           <Flex justify="center" w="100%">
@@ -145,12 +150,12 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
               w={["280px", "360px", "430px"]}
               h={["280px", "360px", "430px"]}
               borderRadius="full"
-              border="22px solid rgba(255,255,255,0.08)"
+              border={isDark ? "22px solid rgba(255,255,255,0.08)" : "22px solid rgba(104,3,14,0.08)"}
               borderTopColor={tierColor}
               borderRightColor={tierColor}
-              boxShadow="0 0 0 14px rgba(255,255,255,0.03)"
+              boxShadow={isDark ? "0 0 0 14px rgba(255,255,255,0.03)" : "0 0 0 14px rgba(242,158,8,0.08)"}
               position="relative"
-              bg="rgba(255,255,255,0.02)"
+              bg={palette.subCardBg}
             >
               <Flex position="absolute" inset="0" align="center" justify="center" direction="column">
                 <Text fontSize={["6xl", "8xl", "9xl"]} fontWeight="900" lineHeight="0.95">
@@ -162,45 +167,47 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
               </Flex>
             </Box>
           </Flex>
-          <Text color="#b7ab8b" maxW="520px" textAlign="center">
+          <Text color={palette.mutedText} maxW="520px" textAlign="center">
             Vouch translates behavioral finance signals into a trust score that is easy to understand and ready to act on.
           </Text>
         </VStack>
-      </Box>
+        </Box>
+      </InteractiveCard>
 
       <Grid templateColumns={["1fr", null, "1.1fr 0.9fr"]} gap={8}>
         <GridItem>
-          <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)">
-            <Text color="#f6c45a" fontSize="sm" letterSpacing="0.14em" mb={5}>
+          <InteractiveCard tilt={4} scale={1.01}>
+            <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg={palette.cardBg} boxShadow={palette.cardShadow}>
+            <Text color={palette.accent} fontSize="sm" letterSpacing="0.14em" mb={5}>
               RESULT DETAILS
             </Text>
             <VStack spacing={4} align="stretch">
-              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
-                <Text color="#a99972" fontSize="sm">
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg={palette.subCardBg}>
+                <Text color={palette.mutedText} fontSize="sm">
                   Vouch Score
                 </Text>
                 <Text mt={2} fontSize="3xl" fontWeight="bold">
                   {score}
                 </Text>
               </Box>
-              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
-                <Text color="#a99972" fontSize="sm">
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg={palette.subCardBg}>
+                <Text color={palette.mutedText} fontSize="sm">
                   Credit Tier
                 </Text>
                 <Text mt={2} fontSize="3xl" fontWeight="bold" color={tierColor}>
                   {tier}
                 </Text>
               </Box>
-              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
-                <Text color="#a99972" fontSize="sm">
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg={palette.subCardBg}>
+                <Text color={palette.mutedText} fontSize="sm">
                   Confidence Score
                 </Text>
                 <Text mt={2} fontSize="3xl" fontWeight="bold">
                   {confidence.toFixed(2)}
                 </Text>
               </Box>
-              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
-                <Text color="#a99972" fontSize="sm">
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg={palette.subCardBg}>
+                <Text color={palette.mutedText} fontSize="sm">
                   Verification
                 </Text>
                 <Text mt={2} fontSize="xl" fontWeight="bold">
@@ -208,21 +215,25 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
                 </Text>
               </Box>
             </VStack>
-          </Box>
+            </Box>
+          </InteractiveCard>
         </GridItem>
 
         <GridItem>
           <VStack spacing={4} align="stretch">
-            <Box p={5} borderWidth="1px" borderRadius="24px" bg="rgba(16, 18, 24, 0.92)">
-              <Text color="#a99972" fontSize="sm">
+            <InteractiveCard tilt={4} scale={1.01}>
+              <Box p={5} borderWidth="1px" borderRadius="24px" bg={palette.cardBg}>
+              <Text color={palette.mutedText} fontSize="sm">
                 Signal Count
               </Text>
               <Text mt={2} fontSize="2xl" fontWeight="bold">
                 {signalCount}
               </Text>
-            </Box>
-            <Box p={5} borderWidth="1px" borderRadius="24px" bg="rgba(16, 18, 24, 0.92)">
-              <Text color="#a99972" fontSize="sm" mb={4}>
+              </Box>
+            </InteractiveCard>
+            <InteractiveCard tilt={4} scale={1.01}>
+              <Box p={5} borderWidth="1px" borderRadius="24px" bg={palette.cardBg}>
+              <Text color={palette.mutedText} fontSize="sm" mb={4}>
                 Neighborhood Density
               </Text>
               <Box
@@ -232,8 +243,8 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
                 borderRadius="24px"
                 overflow="hidden"
                 bg={neighborhoodDensity.withGrid
-                  ? "linear-gradient(rgba(246,196,90,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(246,196,90,0.07) 1px, transparent 1px), rgba(255,255,255,0.02)"
-                  : "rgba(255,255,255,0.02)"}
+                  ? `linear-gradient(rgba(246,196,90,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(246,196,90,0.07) 1px, transparent 1px), ${palette.subCardBg}`
+                  : palette.subCardBg}
                 backgroundSize={neighborhoodDensity.withGrid ? "24px 24px, 24px 24px, auto" : "auto"}
               >
                 <Box position="absolute" inset="0" bg={neighborhoodDensity.accentGlow} />
@@ -269,17 +280,19 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
               <Text mt={4} fontWeight="bold">
                 {neighborhoodDensity.label}
               </Text>
-              <Text mt={1} color="#b7ab8b" fontSize="sm">
+              <Text mt={1} color={palette.mutedText} fontSize="sm">
                 {neighborhoodDensity.description}
               </Text>
-            </Box>
+              </Box>
+            </InteractiveCard>
           </VStack>
         </GridItem>
       </Grid>
 
       {showExplanation && (
-        <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)">
-          <Text color="#f6c45a" fontSize="sm" letterSpacing="0.14em" mb={5}>
+        <InteractiveCard tilt={4} scale={1.01}>
+          <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg={palette.cardBg} boxShadow={palette.cardShadow}>
+          <Text color={palette.accent} fontSize="sm" letterSpacing="0.14em" mb={5}>
             EXPLANATION
           </Text>
           <Grid templateColumns={["1fr", null, "1fr 1fr"]} gap={6}>
@@ -314,7 +327,8 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
               </Box>
             </GridItem>
           </Grid>
-        </Box>
+          </Box>
+        </InteractiveCard>
       )}
 
       <Flex justify="center">
@@ -324,10 +338,10 @@ export function ResultOverview({ showExplanation = true }: ResultOverviewProps) 
           h="56px"
           px={10}
           borderRadius="18px"
-          bg="#f6c45a"
-          color="#17130b"
+          bg={palette.buttonBg}
+          color={palette.buttonText}
           fontWeight="bold"
-          _hover={{ bg: "#ffd67d" }}
+          _hover={{ bg: palette.buttonHover }}
         >
           More Info
         </Button>

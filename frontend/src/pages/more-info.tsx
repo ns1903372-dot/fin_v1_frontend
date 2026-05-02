@@ -13,8 +13,10 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { InteractiveCard } from "@/components/InteractiveCard";
 import { TopNav } from "@/components/TopNav";
 import { getLatestScore, ScoreHistoryEntry } from "@/lib/storage";
+import { useThemeMode } from "@/components/theme-mode";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -45,30 +47,40 @@ function getNeighborhoodDensity(score: number) {
 function DetailCard({
   title,
   children,
+  palette,
 }: {
   title: string;
   children: React.ReactNode;
+  palette: {
+    cardBg: string;
+    cardShadow: string;
+    pageText: string;
+  };
 }) {
   return (
-    <Box
-      p={[5, 6]}
-      borderWidth="1px"
-      borderRadius="28px"
-      bg="rgba(16, 18, 24, 0.92)"
-      boxShadow="0 18px 34px rgba(0, 0, 0, 0.35)"
-      position="relative"
-      overflow="hidden"
-    >
-      <Text fontSize="2xl" fontWeight="bold" color="#f6ead1" mb={4}>
-        {title}
-      </Text>
-      {children}
-    </Box>
+    <InteractiveCard tilt={4} scale={1.01}>
+      <Box
+        p={[5, 6]}
+        borderWidth="1px"
+        borderRadius="28px"
+        bg={palette.cardBg}
+        boxShadow={palette.cardShadow}
+        position="relative"
+        overflow="hidden"
+      >
+        <Text fontSize="2xl" fontWeight="bold" color={palette.pageText} mb={4}>
+          {title}
+        </Text>
+        {children}
+      </Box>
+    </InteractiveCard>
   );
 }
 
 export default function MoreInfoPage() {
+  const { palette, mode } = useThemeMode();
   const [latest, setLatest] = useState<ScoreHistoryEntry | null>(null);
+  const isDark = mode === "dark";
 
   useEffect(() => {
     setLatest(getLatestScore());
@@ -164,7 +176,7 @@ export default function MoreInfoPage() {
       <TopNav />
       <VStack spacing={8} align="stretch">
         {!latest && (
-          <Alert borderRadius="18px" bg="rgba(245, 195, 86, 0.16)" color="#f6ead1">
+          <Alert borderRadius="18px" bg={isDark ? "rgba(245, 195, 86, 0.16)" : "rgba(242, 158, 8, 0.16)"} color={palette.pageText}>
             <AlertIcon />
             No live score found yet. Run an evaluation first, then open More Info to see detailed score intelligence.
           </Alert>
@@ -173,18 +185,21 @@ export default function MoreInfoPage() {
         <Grid templateColumns={["1fr", null, "0.8fr 1.2fr"]} gap={[6, 8]} alignItems="start">
           <GridItem>
             <VStack spacing={6} align="stretch">
-              <Box
-                p={[6, 7]}
-                borderWidth="1px"
-                borderRadius="32px"
-                bg="rgba(16, 18, 24, 0.96)"
-                boxShadow="0 18px 34px rgba(0, 0, 0, 0.35)"
-              >
+              <InteractiveCard tilt={5} scale={1.01}>
+                <Box
+                  p={[6, 7]}
+                  borderWidth="1px"
+                  borderRadius="32px"
+                  bg={palette.cardBg}
+                  boxShadow={palette.cardShadow}
+                >
                 <Box
                   position="relative"
                   h="200px"
                   borderRadius="28px"
-                  bg="radial-gradient(circle at top, rgba(246,196,90,0.16) 0%, rgba(16,18,24,0.92) 44%, rgba(10,11,15,0.98) 100%)"
+                  bg={isDark
+                    ? "radial-gradient(circle at top, rgba(246,196,90,0.16) 0%, rgba(16,18,24,0.92) 44%, rgba(10,11,15,0.98) 100%)"
+                    : "radial-gradient(circle at top, rgba(242,158,8,0.16) 0%, rgba(255,250,241,0.92) 44%, rgba(247,240,230,0.98) 100%)"}
                   overflow="hidden"
                   mb={5}
                 >
@@ -193,13 +208,13 @@ export default function MoreInfoPage() {
                       w="170px"
                       h="170px"
                       borderRadius="full"
-                      border="16px solid rgba(255,255,255,0.08)"
+                      border={isDark ? "16px solid rgba(255,255,255,0.08)" : "16px solid rgba(104,3,14,0.08)"}
                       borderTopColor={tierColor}
                       borderRightColor={tierColor}
-                      bg="rgba(255,255,255,0.02)"
+                      bg={palette.subCardBg}
                     >
                       <Flex h="100%" align="center" justify="center" direction="column">
-                        <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#f6ead1">
+                        <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color={palette.pageText}>
                           {score}
                         </Text>
                         <Text color={tierColor} fontWeight="bold" fontSize="sm" letterSpacing="0.14em">
@@ -210,44 +225,45 @@ export default function MoreInfoPage() {
                   </Flex>
                 </Box>
 
-                <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#f6ead1">
+                <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color={palette.pageText}>
                   More Info
                 </Text>
-                <Text mt={3} color="#b7ab8b">
+                <Text mt={3} color={palette.mutedText}>
                   A deeper Vouch explanation of score drivers, local trust density, transaction patterns, and what to do next.
                 </Text>
-              </Box>
+                </Box>
+              </InteractiveCard>
 
-              <DetailCard title="Score Snapshot">
+              <DetailCard title="Score Snapshot" palette={palette}>
                 <VStack align="stretch" spacing={4}>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Vouch Score</Text>
-                    <Text mt={1} fontSize="3xl" fontWeight="bold" color="#f6ead1">{score}</Text>
+                    <Text color={palette.mutedText} fontSize="sm">Vouch Score</Text>
+                    <Text mt={1} fontSize="3xl" fontWeight="bold" color={palette.pageText}>{score}</Text>
                   </Box>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Credit Tier</Text>
+                    <Text color={palette.mutedText} fontSize="sm">Credit Tier</Text>
                     <Text mt={1} fontSize="2xl" fontWeight="bold" color={tierColor}>{tier}</Text>
                   </Box>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Confidence Score</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{confidence.toFixed(2)}</Text>
+                    <Text color={palette.mutedText} fontSize="sm">Confidence Score</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color={palette.pageText}>{confidence.toFixed(2)}</Text>
                   </Box>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Neighborhood Density</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{neighborhoodDensity}</Text>
+                    <Text color={palette.mutedText} fontSize="sm">Neighborhood Density</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color={palette.pageText}>{neighborhoodDensity}</Text>
                   </Box>
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="Signal Summary">
+              <DetailCard title="Signal Summary" palette={palette}>
                 <VStack align="stretch" spacing={4}>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Signal Count</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{signalCount}</Text>
+                    <Text color={palette.mutedText} fontSize="sm">Signal Count</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color={palette.pageText}>{signalCount}</Text>
                   </Box>
                   <Box>
-                    <Text color="#a99972" fontSize="sm">Trust Note</Text>
-                    <Text mt={2} color="#b7ab8b">
+                    <Text color={palette.mutedText} fontSize="sm">Trust Note</Text>
+                    <Text mt={2} color={palette.mutedText}>
                       Higher Vouch scores naturally align with denser surrounding neighborhood trust activity.
                     </Text>
                   </Box>
@@ -258,61 +274,65 @@ export default function MoreInfoPage() {
 
           <GridItem>
             <VStack spacing={6} align="stretch">
-              <DetailCard title="Reasons Inducing The Score">
+              <DetailCard title="Reasons Inducing The Score" palette={palette}>
                 <VStack align="stretch" spacing={4}>
                   {scoreReasons.map((item) => (
-                    <Box key={item.title} p={4} borderWidth="1px" borderRadius="20px" bg="rgba(255,255,255,0.02)">
-                      <Text fontWeight="bold" color="#f6ead1">{item.title}</Text>
-                      <Text mt={2} color="#b7ab8b">{item.detail}</Text>
+                    <Box key={item.title} p={4} borderWidth="1px" borderRadius="20px" bg={palette.subCardBg}>
+                      <Text fontWeight="bold" color={palette.pageText}>{item.title}</Text>
+                      <Text mt={2} color={palette.mutedText}>{item.detail}</Text>
                     </Box>
                   ))}
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="High Weightage Flags">
+              <DetailCard title="High Weightage Flags" palette={palette}>
                 <VStack align="stretch" spacing={3}>
                   {highWeightFlags.map((flag) => (
                     <HStack key={flag} align="flex-start">
                       <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#ff6b6b" />
-                      <Text color="#f6ead1">{flag}</Text>
+                      <Text color={palette.pageText}>{flag}</Text>
                     </HStack>
                   ))}
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="Most Frequent Transaction">
+              <DetailCard title="Most Frequent Transaction" palette={palette}>
                 <VStack align="stretch" spacing={3}>
                   {transactionInsights.map((item) => (
                     <HStack key={item} align="flex-start">
                       <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#f6c45a" />
-                      <Text color="#f6ead1">{item}</Text>
+                      <Text color={palette.pageText}>{item}</Text>
                     </HStack>
                   ))}
                 </VStack>
               </DetailCard>
 
-              <Box
-                p={[6, 7]}
-                borderWidth="1px"
-                borderRadius="30px"
-                bg="linear-gradient(135deg, rgba(246,196,90,0.18) 0%, rgba(246,196,90,0.10) 36%, rgba(16,18,24,0.96) 100%)"
-                boxShadow="0 22px 38px rgba(0, 0, 0, 0.35)"
-                position="relative"
-                overflow="hidden"
-              >
-                <Box position="absolute" top="-32px" right="-24px" w="140px" h="140px" borderRadius="full" bg="rgba(246,196,90,0.12)" />
-                <Text color="#f6c45a" fontSize="sm" letterSpacing="0.16em" mb={4} fontWeight="bold">
-                  AI RECOMMENDATION TO IMPROVE YOUR VOUCH SCORE
-                </Text>
-                <VStack align="stretch" spacing={3} position="relative">
-                  {aiRecommendations.map((item) => (
-                    <HStack key={item} align="flex-start" p={3} borderRadius="18px" bg="rgba(16,18,24,0.64)">
-                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#f6c45a" />
-                      <Text color="#f6ead1" fontWeight="medium">{item}</Text>
-                    </HStack>
-                  ))}
-                </VStack>
-              </Box>
+              <InteractiveCard tilt={4} scale={1.01}>
+                <Box
+                  p={[6, 7]}
+                  borderWidth="1px"
+                  borderRadius="30px"
+                  bg={isDark
+                    ? "linear-gradient(135deg, rgba(246,196,90,0.18) 0%, rgba(246,196,90,0.10) 36%, rgba(16,18,24,0.96) 100%)"
+                    : "linear-gradient(135deg, rgba(242,158,8,0.18) 0%, rgba(242,158,8,0.10) 36%, rgba(255,250,241,0.96) 100%)"}
+                  boxShadow={palette.cardShadow}
+                  position="relative"
+                  overflow="hidden"
+                >
+                  <Box position="absolute" top="-32px" right="-24px" w="140px" h="140px" borderRadius="full" bg={isDark ? "rgba(246,196,90,0.12)" : "rgba(242,158,8,0.12)"} />
+                  <Text color={palette.accent} fontSize="sm" letterSpacing="0.16em" mb={4} fontWeight="bold">
+                    AI RECOMMENDATION TO IMPROVE YOUR VOUCH SCORE
+                  </Text>
+                  <VStack align="stretch" spacing={3} position="relative">
+                    {aiRecommendations.map((item) => (
+                      <HStack key={item} align="flex-start" p={3} borderRadius="18px" bg={isDark ? "rgba(16,18,24,0.64)" : "rgba(255,250,241,0.72)"}>
+                        <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#f6c45a" />
+                        <Text color={palette.pageText} fontWeight="medium">{item}</Text>
+                      </HStack>
+                    ))}
+                  </VStack>
+                </Box>
+              </InteractiveCard>
             </VStack>
           </GridItem>
         </Grid>
@@ -324,10 +344,10 @@ export default function MoreInfoPage() {
             h="56px"
             px={9}
             borderRadius="999px"
-            bg="#f6c45a"
-            color="#17130b"
+            bg={palette.buttonBg}
+            color={palette.buttonText}
             fontWeight="bold"
-            _hover={{ bg: "#ffd67d" }}
+            _hover={{ bg: palette.buttonHover }}
           >
             Back To Landing Page
           </Button>

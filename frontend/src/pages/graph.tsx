@@ -1,5 +1,7 @@
 import { Box, Container, Text, VStack } from "@chakra-ui/react";
+import { InteractiveCard } from "@/components/InteractiveCard";
 import { TopNav } from "@/components/TopNav";
+import { useThemeMode } from "@/components/theme-mode";
 
 const nodes = [
   { label: "Bank", top: "28%", left: "14%", accent: "#7cd67b" },
@@ -11,30 +13,36 @@ const nodes = [
 ];
 
 export default function GraphPage() {
+  const { palette, mode } = useThemeMode();
+  const isDark = mode === "dark";
+  const linkStroke = isDark ? "rgba(255,255,255,0.14)" : "rgba(104,3,14,0.14)";
+
   return (
     <Container maxW="container.xl" py={[5, 8]} px={[4, 6]}>
       <TopNav />
       <VStack spacing={8} align="stretch">
         <Box>
-          <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+          <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs" mb={2}>
             05. TRUST GRAPH
           </Text>
           <Text fontSize={["3xl", "4xl"]} fontWeight="bold">
             Full Network View
           </Text>
-          <Text mt={3} color="#b7ab8b" maxW="780px">
+          <Text mt={3} color={palette.mutedText} maxW="780px">
             This full page expands the trust graph panel from the dashboard into a larger network view.
           </Text>
         </Box>
 
-        <Box
-          position="relative"
-          h={["480px", "620px"]}
-          borderWidth="1px"
-          borderRadius="30px"
-          bg="rgba(16, 18, 24, 0.92)"
-          overflow="hidden"
-        >
+        <InteractiveCard tilt={5} scale={1.01}>
+          <Box
+            position="relative"
+            h={["480px", "620px"]}
+            borderWidth="1px"
+            borderRadius="30px"
+            bg={palette.cardBg}
+            boxShadow={palette.cardShadow}
+            overflow="hidden"
+          >
           <svg width="100%" height="100%" viewBox="0 0 1200 700" preserveAspectRatio="none">
             <line x1="600" y1="350" x2="180" y2="210" stroke="#83d77c" strokeWidth="3" />
             <line x1="600" y1="350" x2="600" y2="120" stroke="#f6c45a" strokeWidth="3" />
@@ -42,10 +50,10 @@ export default function GraphPage() {
             <line x1="600" y1="350" x2="600" y2="560" stroke="#f6c45a" strokeWidth="3" />
             <line x1="600" y1="350" x2="230" y2="470" stroke="#9bbcff" strokeWidth="2" />
             <line x1="600" y1="350" x2="980" y2="470" stroke="#ff9f6a" strokeWidth="2" />
-            <line x1="180" y1="210" x2="1010" y2="230" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <line x1="180" y1="210" x2="600" y2="560" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <line x1="1010" y1="230" x2="600" y2="560" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <line x1="230" y1="470" x2="980" y2="470" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
+            <line x1="180" y1="210" x2="1010" y2="230" stroke={linkStroke} strokeWidth="1.5" />
+            <line x1="180" y1="210" x2="600" y2="560" stroke={linkStroke} strokeWidth="1.5" />
+            <line x1="1010" y1="230" x2="600" y2="560" stroke={linkStroke} strokeWidth="1.5" />
+            <line x1="230" y1="470" x2="980" y2="470" stroke={linkStroke} strokeWidth="1.5" />
           </svg>
 
           {nodes.map((node) => (
@@ -59,13 +67,13 @@ export default function GraphPage() {
               h={["92px", "112px"]}
               borderRadius="full"
               borderWidth="1px"
-              bg="rgba(255,255,255,0.05)"
+              bg={palette.subCardBg}
               display="flex"
               alignItems="center"
               justifyContent="center"
               flexDirection="column"
               textAlign="center"
-              boxShadow="0 18px 40px rgba(0, 0, 0, 0.24)"
+              boxShadow={isDark ? "0 18px 40px rgba(0, 0, 0, 0.24)" : "0 18px 40px rgba(104, 3, 14, 0.08)"}
             >
               <Box w="14px" h="14px" borderRadius="full" bg={node.accent} mb={2} />
               <Text fontSize={["sm", "md"]}>{node.label}</Text>
@@ -80,20 +88,21 @@ export default function GraphPage() {
             w={["128px", "164px"]}
             h={["128px", "164px"]}
             borderRadius="full"
-            border="2px solid #f6c45a"
-            bg="rgba(246,196,90,0.08)"
+            border={`2px solid ${palette.accent}`}
+            bg={isDark ? "rgba(246,196,90,0.08)" : "rgba(242,158,8,0.08)"}
             display="flex"
             alignItems="center"
             justifyContent="center"
             flexDirection="column"
-            boxShadow="0 24px 80px rgba(246, 196, 90, 0.1)"
+            boxShadow={isDark ? "0 24px 80px rgba(246, 196, 90, 0.1)" : "0 24px 80px rgba(242, 158, 8, 0.12)"}
           >
             <Text fontSize={["4xl", "5xl"]}>•</Text>
             <Text fontWeight="bold" fontSize={["lg", "xl"]}>
               You
             </Text>
           </Box>
-        </Box>
+          </Box>
+        </InteractiveCard>
       </VStack>
     </Container>
   );

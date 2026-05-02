@@ -16,6 +16,8 @@ import {
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { verifyRent, VerifyRequest, VerifyResponse } from "@/lib/api";
+import { InteractiveCard } from "@/components/InteractiveCard";
+import { useThemeMode } from "@/components/theme-mode";
 
 type VerifyFormValues = {
   user_id: string;
@@ -24,6 +26,7 @@ type VerifyFormValues = {
 };
 
 export function VerifyForm() {
+  const { palette } = useThemeMode();
   const [result, setResult] = useState<VerifyResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,21 +98,23 @@ export function VerifyForm() {
   return (
     <Grid templateColumns={["1fr", null, "1fr 0.9fr"]} gap={8}>
       <GridItem>
-        <Box
-          p={[6, 8]}
-          borderWidth="1px"
-          borderRadius="30px"
-          bg="rgba(16, 18, 24, 0.92)"
-        >
+        <InteractiveCard tilt={4} scale={1.01}>
+          <Box
+            p={[6, 8]}
+            borderWidth="1px"
+            borderRadius="30px"
+            bg={palette.cardBg}
+            boxShadow={palette.cardShadow}
+          >
           <VStack spacing={5} align="stretch">
             <Box>
-              <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs" mb={2}>
                 BILATERAL VERIFICATION
               </Text>
               <Text fontSize="3xl" fontWeight="bold">
                 Verify Rent Trust
               </Text>
-              <Text mt={2} color="#b7ab8b">
+              <Text mt={2} color={palette.mutedText}>
                 Submit the landlord VPA and agreement hash to keep the same
                 verification backend flow.
               </Text>
@@ -124,7 +129,10 @@ export function VerifyForm() {
                     placeholder="user_123_abc"
                     h="56px"
                     borderRadius="18px"
-                    bg="rgba(10, 12, 16, 0.95)"
+                    bg={palette.inputBg}
+                    color={palette.inputText}
+                    borderColor={palette.inputBorder}
+                    _placeholder={{ color: palette.mutedText }}
                   />
                   <Text color="#ff9075" mt={1} fontSize="sm">
                     {errors.user_id?.message}
@@ -138,7 +146,10 @@ export function VerifyForm() {
                     placeholder="landlord@bankupi"
                     h="56px"
                     borderRadius="18px"
-                    bg="rgba(10, 12, 16, 0.95)"
+                    bg={palette.inputBg}
+                    color={palette.inputText}
+                    borderColor={palette.inputBorder}
+                    _placeholder={{ color: palette.mutedText }}
                   />
                   <Text color="#ff9075" mt={1} fontSize="sm">
                     {errors.landlord_vpa?.message}
@@ -152,7 +163,10 @@ export function VerifyForm() {
                     placeholder="sha256_hash"
                     h="56px"
                     borderRadius="18px"
-                    bg="rgba(10, 12, 16, 0.95)"
+                    bg={palette.inputBg}
+                    color={palette.inputText}
+                    borderColor={palette.inputBorder}
+                    _placeholder={{ color: palette.mutedText }}
                   />
                   <Text color="#ff9075" mt={1} fontSize="sm">
                     {errors.agreement_hash?.message}
@@ -164,9 +178,9 @@ export function VerifyForm() {
                   isLoading={isSubmitting}
                   h="58px"
                   borderRadius="18px"
-                  bg="#f6c45a"
-                  color="#17130b"
-                  _hover={{ bg: "#ffd67d" }}
+                  bg={palette.buttonBg}
+                  color={palette.buttonText}
+                  _hover={{ bg: palette.buttonHover }}
                 >
                   Verify Rent
                 </Button>
@@ -183,18 +197,20 @@ export function VerifyForm() {
               </Alert>
             )}
           </VStack>
-        </Box>
+          </Box>
+        </InteractiveCard>
       </GridItem>
 
       <GridItem>
         <VStack spacing={6} align="stretch">
-          <Box
-            p={6}
-            borderWidth="1px"
-            borderRadius="24px"
-            bg="rgba(16, 18, 24, 0.92)"
-          >
-            <Text color="#f6c45a" fontWeight="semibold" mb={3}>
+          <InteractiveCard tilt={4} scale={1.01}>
+            <Box
+              p={6}
+              borderWidth="1px"
+              borderRadius="24px"
+              bg={palette.cardBg}
+            >
+            <Text color={palette.accent} fontWeight="semibold" mb={3}>
               Verification Output
             </Text>
             {result ? (
@@ -205,28 +221,31 @@ export function VerifyForm() {
                 <Text>Timestamp: {new Date(result.verification_timestamp).toLocaleString()}</Text>
               </VStack>
             ) : (
-              <Text color="#b7ab8b">
+              <Text color={palette.mutedText}>
                 The verified status, consistency window, and trust coefficient
                 will appear here after the API responds.
               </Text>
             )}
-          </Box>
+            </Box>
+          </InteractiveCard>
 
-          <Box
-            p={6}
-            borderWidth="1px"
-            borderRadius="24px"
-            bg="rgba(16, 18, 24, 0.92)"
-          >
-            <Text color="#f6c45a" fontWeight="semibold" mb={3}>
+          <InteractiveCard tilt={4} scale={1.01}>
+            <Box
+              p={6}
+              borderWidth="1px"
+              borderRadius="24px"
+              bg={palette.cardBg}
+            >
+            <Text color={palette.accent} fontWeight="semibold" mb={3}>
               What Stays the Same
             </Text>
-            <VStack align="stretch" spacing={3} color="#c6b894">
+            <VStack align="stretch" spacing={3} color={palette.mutedText}>
               <Text>Still calls `/v1/verify` with the same body fields.</Text>
               <Text>No backend scoring or verification logic was changed.</Text>
               <Text>Only the UI layer now matches the Axiom product look.</Text>
             </VStack>
-          </Box>
+            </Box>
+          </InteractiveCard>
         </VStack>
       </GridItem>
     </Grid>

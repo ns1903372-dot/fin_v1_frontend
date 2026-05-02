@@ -21,6 +21,8 @@ import {
 import { useForm } from "react-hook-form";
 import { scoreUser, ScoreRequest, ScoreResponse } from "@/lib/api";
 import { saveScoreHistory, ScoreHistoryEntry, ScoreInputMethod } from "@/lib/storage";
+import { InteractiveCard } from "@/components/InteractiveCard";
+import { useThemeMode } from "@/components/theme-mode";
 
 type ScoreFormValues = {
   user_id: string;
@@ -125,6 +127,7 @@ export function ScoreForm({
   showUserIdField = true,
 }: ScoreFormProps) {
   const router = useRouter();
+  const { palette, mode } = useThemeMode();
   const [selectedMethod, setSelectedMethod] = useState<ScoreInputMethod | null>(null);
   const [selectedVerification, setSelectedVerification] = useState<string | null>(null);
   const [rentVerificationMethod, setRentVerificationMethod] = useState<"landlord_vpa" | "documents" | null>(null);
@@ -136,6 +139,17 @@ export function ScoreForm({
   const [error, setError] = useState<string | null>(null);
   const [pipelineStage, setPipelineStage] = useState(0);
   const [progress, setProgress] = useState(12);
+  const isDark = mode === "dark";
+  const selectedGradient = isDark
+    ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)"
+    : `linear-gradient(180deg, ${palette.buttonBg} 0%, ${palette.accentSoft} 100%)`;
+  const idleGradient = isDark
+    ? "linear-gradient(180deg, rgba(34,37,46,0.96) 0%, rgba(18,20,27,0.98) 100%)"
+    : "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(247,240,230,0.98) 100%)";
+  const idleBorder = isDark ? "rgba(246,196,90,0.2)" : palette.inputBorder;
+  const idleCardText = isDark ? "#f6ead1" : palette.pageText;
+  const idleMutedText = isDark ? "#a99972" : palette.mutedText;
+  const activeMutedText = isDark ? "rgba(23,19,11,0.8)" : "rgba(42,22,8,0.84)";
 
   const {
     register,
@@ -291,28 +305,29 @@ export function ScoreForm({
   return (
     <Grid templateColumns={showPipeline ? ["1fr", null, "1.05fr 0.95fr"] : ["1fr"]} gap={8}>
       <GridItem>
-        <Box
-          p={[6, 8]}
-          borderWidth="1px"
-          borderRadius="30px"
-          bg="rgba(16, 18, 24, 0.92)"
-          boxShadow="0 24px 80px rgba(0, 0, 0, 0.35)"
-        >
+        <InteractiveCard tilt={4} scale={1.01}>
+          <Box
+            p={[6, 8]}
+            borderWidth="1px"
+            borderRadius="30px"
+            bg={palette.cardBg}
+            boxShadow={palette.cardShadow}
+          >
           <VStack align="stretch" spacing={6}>
             <Box>
-              <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs" mb={2}>
                 {eyebrow}
               </Text>
               <Text fontSize={["3xl", "4xl"]} fontWeight="bold">
                 {title}
               </Text>
-              <Text color="#b7ab8b" mt={2}>
+              <Text color={palette.mutedText} mt={2}>
                 {description}
               </Text>
             </Box>
 
             <Box>
-              <Text color="#e8d7ac" mb={3} fontWeight="semibold">
+              <Text color={palette.pageText} mb={3} fontWeight="semibold">
                 Input Methods
               </Text>
               <Grid templateColumns={["1fr", null, "repeat(3, 1fr)"]} gap={4}>
@@ -335,13 +350,13 @@ export function ScoreForm({
                         fontSize="md"
                         fontWeight="bold"
                         boxShadow={active ? "0 12px 28px rgba(246,196,90,0.18)" : "0 10px 24px rgba(0,0,0,0.22)"}
-                        bg={active ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)" : "linear-gradient(180deg, rgba(34,37,46,0.96) 0%, rgba(18,20,27,0.98) 100%)"}
-                        borderColor={active ? "#f6c45a" : "rgba(246,196,90,0.2)"}
-                        color={active ? "#17130b" : "#f6ead1"}
+                        bg={active ? selectedGradient : idleGradient}
+                        borderColor={active ? palette.accent : idleBorder}
+                        color={active ? palette.buttonText : idleCardText}
                         _hover={{
                           transform: "translateY(-2px)",
                           boxShadow: "0 14px 30px rgba(246,196,90,0.24)",
-                          borderColor: "#f6c45a",
+                          borderColor: palette.accent,
                         }}
                         _active={{ transform: "translateY(0)" }}
                         transition="all 0.2s ease"
@@ -351,7 +366,7 @@ export function ScoreForm({
                             {method.title}
                           </Text>
                           <Text
-                            color={active ? "rgba(23,19,11,0.8)" : "#a99972"}
+                            color={active ? activeMutedText : idleMutedText}
                             whiteSpace="normal"
                             fontSize="xs"
                             fontWeight="normal"
@@ -369,7 +384,10 @@ export function ScoreForm({
                             placeholder="user@bankupi"
                             h="52px"
                             borderRadius="16px"
-                            bg="rgba(10, 12, 16, 0.95)"
+                            bg={palette.inputBg}
+                            color={palette.inputText}
+                            borderColor={palette.inputBorder}
+                            _placeholder={{ color: palette.mutedText }}
                           />
                           <Text color="#ff9075" mt={1} fontSize="sm">
                             {errors.upi_id?.message}
@@ -384,7 +402,10 @@ export function ScoreForm({
                             placeholder="+91 9876543210"
                             h="52px"
                             borderRadius="16px"
-                            bg="rgba(10, 12, 16, 0.95)"
+                            bg={palette.inputBg}
+                            color={palette.inputText}
+                            borderColor={palette.inputBorder}
+                            _placeholder={{ color: palette.mutedText }}
                           />
                           <Text color="#ff9075" mt={1} fontSize="sm">
                             {errors.phone_number?.message}
@@ -402,15 +423,17 @@ export function ScoreForm({
                             h="auto"
                             py={3}
                             borderRadius="16px"
-                            bg="rgba(10, 12, 16, 0.95)"
+                            bg={palette.inputBg}
+                            color={palette.inputText}
+                            borderColor={palette.inputBorder}
                           />
-                          <Text mt={2} color="#a99972" fontSize="sm">
+                          <Text mt={2} color={palette.mutedText} fontSize="sm">
                             Add bank statements, utility bills, rent proofs, or other supporting files.
                           </Text>
                           {documents.length > 0 && (
                             <VStack mt={3} align="stretch" spacing={2}>
                               {documents.map((file) => (
-                                <Text key={`${file.name}-${file.size}`} color="#d8caab" fontSize="sm">
+                                <Text key={`${file.name}-${file.size}`} color={palette.pageText} fontSize="sm">
                                   {file.name}
                                 </Text>
                               ))}
@@ -430,7 +453,7 @@ export function ScoreForm({
             </Box>
 
             <Box>
-              <Text color="#e8d7ac" mb={3} fontWeight="semibold">
+              <Text color={palette.pageText} mb={3} fontWeight="semibold">
                 Optional Verification
               </Text>
               <Grid templateColumns={["1fr", null, "repeat(2, 1fr)"]} gap={4}>
@@ -452,13 +475,13 @@ export function ScoreForm({
                         fontSize="md"
                         fontWeight="bold"
                         boxShadow={active ? "0 12px 28px rgba(246,196,90,0.18)" : "0 10px 24px rgba(0,0,0,0.22)"}
-                        bg={active ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)" : "linear-gradient(180deg, rgba(34,37,46,0.96) 0%, rgba(18,20,27,0.98) 100%)"}
-                        borderColor={active ? "#f6c45a" : "rgba(246,196,90,0.2)"}
-                        color={active ? "#17130b" : "#f6ead1"}
+                        bg={active ? selectedGradient : idleGradient}
+                        borderColor={active ? palette.accent : idleBorder}
+                        color={active ? palette.buttonText : idleCardText}
                         _hover={{
                           transform: "translateY(-2px)",
                           boxShadow: "0 14px 30px rgba(246,196,90,0.24)",
-                          borderColor: "#f6c45a",
+                          borderColor: palette.accent,
                         }}
                         _active={{ transform: "translateY(0)" }}
                         transition="all 0.2s ease"
@@ -468,7 +491,7 @@ export function ScoreForm({
                             {verification.title}
                           </Text>
                           <Text
-                            color={active ? "rgba(23,19,11,0.8)" : "#a99972"}
+                            color={active ? activeMutedText : idleMutedText}
                             whiteSpace="normal"
                             fontSize="xs"
                             fontWeight="normal"
@@ -487,7 +510,10 @@ export function ScoreForm({
                               placeholder="Parent VPA"
                               h="52px"
                               borderRadius="16px"
-                              bg="rgba(10, 12, 16, 0.95)"
+                              bg={palette.inputBg}
+                              color={palette.inputText}
+                              borderColor={palette.inputBorder}
+                              _placeholder={{ color: palette.mutedText }}
                             />
                           </FormControl>
                           <FormControl>
@@ -496,7 +522,10 @@ export function ScoreForm({
                               placeholder="Student Mail Verification"
                               h="52px"
                               borderRadius="16px"
-                              bg="rgba(10, 12, 16, 0.95)"
+                              bg={palette.inputBg}
+                              color={palette.inputText}
+                              borderColor={palette.inputBorder}
+                              _placeholder={{ color: palette.mutedText }}
                             />
                           </FormControl>
                         </VStack>
@@ -511,12 +540,12 @@ export function ScoreForm({
                               borderRadius="16px"
                               borderWidth="1px"
                               bg={rentVerificationMethod === "landlord_vpa"
-                                ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)"
-                                : "rgba(255,255,255,0.03)"}
-                              borderColor={rentVerificationMethod === "landlord_vpa" ? "#f6c45a" : "rgba(246,196,90,0.18)"}
-                              color={rentVerificationMethod === "landlord_vpa" ? "#17130b" : "#f6ead1"}
+                                ? selectedGradient
+                                : palette.subCardBg}
+                              borderColor={rentVerificationMethod === "landlord_vpa" ? palette.accent : idleBorder}
+                              color={rentVerificationMethod === "landlord_vpa" ? palette.buttonText : idleCardText}
                               onClick={() => setRentVerificationMethod("landlord_vpa")}
-                              _hover={{ borderColor: "#f6c45a" }}
+                              _hover={{ borderColor: palette.accent }}
                             >
                               Landlord VPA
                             </Button>
@@ -526,12 +555,12 @@ export function ScoreForm({
                               borderRadius="16px"
                               borderWidth="1px"
                               bg={rentVerificationMethod === "documents"
-                                ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)"
-                                : "rgba(255,255,255,0.03)"}
-                              borderColor={rentVerificationMethod === "documents" ? "#f6c45a" : "rgba(246,196,90,0.18)"}
-                              color={rentVerificationMethod === "documents" ? "#17130b" : "#f6ead1"}
+                                ? selectedGradient
+                                : palette.subCardBg}
+                              borderColor={rentVerificationMethod === "documents" ? palette.accent : idleBorder}
+                              color={rentVerificationMethod === "documents" ? palette.buttonText : idleCardText}
                               onClick={() => setRentVerificationMethod("documents")}
-                              _hover={{ borderColor: "#f6c45a" }}
+                              _hover={{ borderColor: palette.accent }}
                             >
                               Document Upload
                             </Button>
@@ -544,7 +573,10 @@ export function ScoreForm({
                                 placeholder="Landlord VPA"
                                 h="52px"
                                 borderRadius="16px"
-                                bg="rgba(10, 12, 16, 0.95)"
+                                bg={palette.inputBg}
+                                color={palette.inputText}
+                                borderColor={palette.inputBorder}
+                                _placeholder={{ color: palette.mutedText }}
                               />
                             </FormControl>
                           )}
@@ -562,15 +594,17 @@ export function ScoreForm({
                                 h="auto"
                                 py={3}
                                 borderRadius="16px"
-                                bg="rgba(10, 12, 16, 0.95)"
+                                bg={palette.inputBg}
+                                color={palette.inputText}
+                                borderColor={palette.inputBorder}
                               />
-                              <Text mt={2} color="#a99972" fontSize="sm">
+                              <Text mt={2} color={palette.mutedText} fontSize="sm">
                                 Upload rent agreement, receipts, or supporting rent documents.
                               </Text>
                               {rentDocuments.length > 0 && (
                                 <VStack mt={3} align="stretch" spacing={2}>
                                   {rentDocuments.map((file) => (
-                                    <Text key={`${file.name}-${file.size}`} color="#d8caab" fontSize="sm">
+                                    <Text key={`${file.name}-${file.size}`} color={palette.pageText} fontSize="sm">
                                       {file.name}
                                     </Text>
                                   ))}
@@ -590,14 +624,16 @@ export function ScoreForm({
               <VStack spacing={5} align="stretch">
                 {showUserIdField ? (
                   <FormControl isInvalid={!!errors.user_id}>
-                    <FormLabel color="#e8d7ac">User ID</FormLabel>
+                    <FormLabel color={palette.pageText}>User ID</FormLabel>
                     <Input
                       {...register("user_id")}
                       placeholder="user_123_abc"
                       h="56px"
                       borderRadius="18px"
-                      bg="rgba(10, 12, 16, 0.95)"
-                      color="#f8eed7"
+                      bg={palette.inputBg}
+                      color={palette.inputText}
+                      borderColor={palette.inputBorder}
+                      _placeholder={{ color: palette.mutedText }}
                     />
                     <Text color="#ff9075" mt={1} fontSize="sm">
                       {errors.user_id?.message}
@@ -615,10 +651,10 @@ export function ScoreForm({
                   isLoading={isSubmitting}
                   h="58px"
                   borderRadius="18px"
-                  bg="#f6c45a"
-                  color="#17130b"
+                  bg={palette.buttonBg}
+                  color={palette.buttonText}
                   fontWeight="bold"
-                  _hover={{ bg: "#ffd67d" }}
+                  _hover={{ bg: palette.buttonHover }}
                 >
                   Run AI Evaluation
                 </Button>
@@ -655,20 +691,22 @@ export function ScoreForm({
               </Alert>
             )}
           </VStack>
-        </Box>
+          </Box>
+        </InteractiveCard>
       </GridItem>
 
       {showPipeline && (
         <GridItem>
           <VStack spacing={6} align="stretch">
-            <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)" minH="340px">
-              <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+            <InteractiveCard tilt={4} scale={1.01}>
+              <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg={palette.cardBg} boxShadow={palette.cardShadow} minH="340px">
+              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs" mb={2}>
                 03. AI PIPELINE
               </Text>
               <Text fontSize="2xl" fontWeight="bold" mb={2}>
                 AI Evaluation in Progress
               </Text>
-              <Text color="#b7ab8b" mb={8}>
+              <Text color={palette.mutedText} mb={8}>
                 The interface mirrors your wireframe, while the API call still hits the original scoring backend.
               </Text>
 
@@ -684,12 +722,12 @@ export function ScoreForm({
                         align="center"
                         justify="center"
                         borderWidth="2px"
-                        borderColor={active ? "#f6c45a" : "rgba(255,255,255,0.18)"}
-                        color={active ? "#f6c45a" : "#7f7661"}
+                        borderColor={active ? palette.accent : idleBorder}
+                        color={active ? palette.accent : palette.mutedText}
                       >
                         <Text fontWeight="bold">{index + 1}</Text>
                       </Flex>
-                      <Text textAlign="center" fontSize="sm" color={active ? "#f5e3ba" : "#8d8268"}>
+                      <Text textAlign="center" fontSize="sm" color={active ? palette.pageText : palette.mutedText}>
                         {step}
                       </Text>
                     </VStack>
@@ -697,8 +735,8 @@ export function ScoreForm({
                 })}
               </HStack>
 
-              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
-                <Text color="#c7b17c" mb={3}>
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg={palette.subCardBg}>
+                <Text color={palette.accentSoft} mb={3}>
                   Processing {activeInputLabel}
                 </Text>
                 <Progress
@@ -711,11 +749,12 @@ export function ScoreForm({
                     },
                   }}
                 />
-                <Text mt={3} color="#a99972" fontSize="sm">
+                <Text mt={3} color={palette.mutedText} fontSize="sm">
                   {isSubmitting ? pipelineSteps[pipelineStage] : "Ready to analyze behavioral patterns and trust signals."}
                 </Text>
               </Box>
-            </Box>
+              </Box>
+            </InteractiveCard>
           </VStack>
         </GridItem>
       )}

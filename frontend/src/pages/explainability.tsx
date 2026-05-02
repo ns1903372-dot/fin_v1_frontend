@@ -1,5 +1,7 @@
 import { Box, Container, Grid, GridItem, HStack, Text, VStack } from "@chakra-ui/react";
+import { InteractiveCard } from "@/components/InteractiveCard";
 import { TopNav } from "@/components/TopNav";
+import { useThemeMode } from "@/components/theme-mode";
 
 const positiveFactors = [
   "Stable income pattern",
@@ -18,25 +20,27 @@ const negativeFactors = [
 ];
 
 export default function ExplainabilityPage() {
+  const { palette } = useThemeMode();
   return (
     <Container maxW="container.xl" py={[5, 8]} px={[4, 6]}>
       <TopNav />
       <VStack spacing={8} align="stretch">
         <Box>
-          <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+          <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs" mb={2}>
             06. EXPLAINABILITY
           </Text>
           <Text fontSize={["3xl", "4xl"]} fontWeight="bold">
             Why This Score?
           </Text>
-          <Text mt={3} color="#b7ab8b" maxW="780px">
+          <Text mt={3} color={palette.mutedText} maxW="780px">
             This page expands the explainability section so users can review the strongest positive and negative trust factors.
           </Text>
         </Box>
 
         <Grid templateColumns={["1fr", null, "1fr 1fr"]} gap={8}>
           <GridItem>
-            <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)">
+            <InteractiveCard tilt={4} scale={1.01}>
+              <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg={palette.cardBg} boxShadow={palette.cardShadow}>
               <Text fontSize="2xl" fontWeight="bold" mb={5}>
                 Positive Factors
               </Text>
@@ -48,11 +52,13 @@ export default function ExplainabilityPage() {
                   </HStack>
                 ))}
               </VStack>
-            </Box>
+              </Box>
+            </InteractiveCard>
           </GridItem>
 
           <GridItem>
-            <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)">
+            <InteractiveCard tilt={4} scale={1.01}>
+              <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg={palette.cardBg} boxShadow={palette.cardShadow}>
               <Text fontSize="2xl" fontWeight="bold" mb={5}>
                 Negative Factors
               </Text>
@@ -64,7 +70,8 @@ export default function ExplainabilityPage() {
                   </HStack>
                 ))}
               </VStack>
-            </Box>
+              </Box>
+            </InteractiveCard>
           </GridItem>
         </Grid>
       </VStack>

@@ -1,4 +1,4 @@
-import { MouseEvent, useState } from "react";
+import { PointerEvent, useState } from "react";
 import Image from "next/image";
 import { Box } from "@chakra-ui/react";
 import { motion } from "framer-motion";
@@ -14,10 +14,10 @@ const MotionBox = motion(Box);
 export function TiltCardImage({ src, alt, width = 320 }: TiltCardImageProps) {
   const [rotation, setRotation] = useState({ rotateX: 0, rotateY: 0, scale: 1 });
 
-  function handleMouseMove(event: MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+  function updateRotation(clientX: number, clientY: number, element: HTMLDivElement) {
+    const rect = element.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
@@ -31,7 +31,11 @@ export function TiltCardImage({ src, alt, width = 320 }: TiltCardImageProps) {
     });
   }
 
-  function handleMouseLeave() {
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    updateRotation(event.clientX, event.clientY, event.currentTarget);
+  }
+
+  function resetRotation() {
     setRotation({ rotateX: 0, rotateY: 0, scale: 1 });
   }
 
@@ -43,14 +47,16 @@ export function TiltCardImage({ src, alt, width = 320 }: TiltCardImageProps) {
       justifyContent="center"
       cursor="pointer"
       w="100%"
-      style={{ perspective: "1000px" }}
+      style={{ perspective: "1000px", touchAction: "none" }}
     >
       <MotionBox
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={resetRotation}
+        onPointerUp={resetRotation}
+        onPointerCancel={resetRotation}
         animate={rotation}
         transition={{ type: "spring", stiffness: 150, damping: 16, mass: 0.9 }}
-        style={{ transformStyle: "preserve-3d", width: `${width}px`, maxWidth: "100%" }}
+        style={{ transformStyle: "preserve-3d", width: `${width}px`, maxWidth: "100%", touchAction: "none" }}
         borderRadius="28px"
         overflow="hidden"
         boxShadow="0 20px 38px rgba(0, 0, 0, 0.36), 0 0 24px rgba(246, 196, 90, 0.08)"
