@@ -1,260 +1,203 @@
+import { useEffect, useState } from "react";
 import NextLink from "next/link";
-import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
 import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Grid,
-  GridItem,
-  HStack,
-  Progress,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import { Box, Button, Container, Input, Text, VStack } from "@chakra-ui/react";
 import { TopNav } from "@/components/TopNav";
-
-const MotionBox = motion(Box);
-
-const featureCards = [
-  {
-    title: "Real Data",
-    text: "Aggregate alternative behavioral signals from UPI and account activity.",
-  },
-  {
-    title: "AI Analysis",
-    text: "Run the scoring engine with explainability and risk-aware interpretation.",
-  },
-  {
-    title: "Trust Score",
-    text: "Generate a clean trust outcome with confidence and verification status.",
-  },
-  {
-    title: "Better Access",
-    text: "Present user-ready intelligence for lenders, landlords, and fintech teams.",
-  },
-];
+import { useThemeMode } from "@/components/theme-mode";
 
 export default function Home() {
+  const { palette, mode } = useThemeMode();
   const { scrollYProgress } = useScroll();
+  const [userId, setUserId] = useState("");
 
-  const yCard = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const yHand = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 8]);
-  const cardLift = useTransform(scrollYProgress, [0, 1], [0, -35]);
-  const cardScale = useTransform(scrollYProgress, [0, 1], [0.96, 1.06]);
+  const rawYCard = useTransform(scrollYProgress, [0, 1], [0, -350]);
+  const yCard = useSpring(rawYCard, { stiffness: 70, damping: 18 });
+
+  const rawRotateCard = useTransform(scrollYProgress, [0, 1], [0, 16]);
+  const rotateCard = useSpring(rawRotateCard, { stiffness: 60, damping: 20 });
+
+  const rawYHand = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const yHand = useSpring(rawYHand, { stiffness: 50, damping: 25 });
+
+  const rawRotateHand = useTransform(scrollYProgress, [0, 1], [0, -6]);
+  const rotateHand = useSpring(rawRotateHand, { stiffness: 50, damping: 25 });
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-300, 300], [8, -8]), {
+    stiffness: 100,
+    damping: 20,
+  });
+
+  const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-8, 8]), {
+    stiffness: 100,
+    damping: 20,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const savedUserId = window.localStorage.getItem("vouch_user_id");
+    if (savedUserId) {
+      setUserId(savedUserId);
+    }
+  }, []);
+
+  function handleGetStarted() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("vouch_user_id", userId.trim());
+    }
+  }
+
+  function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+
+    mouseX.set(x);
+    mouseY.set(y);
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
 
   return (
     <Container maxW="container.xl" py={[5, 8]} px={[4, 6]}>
       <TopNav />
 
-      <Grid templateColumns={["1fr", null, "1.15fr 0.85fr"]} gap={[8, 10]} alignItems="stretch">
-        <GridItem>
-          <Box
-            p={[6, 8]}
-            borderWidth="1px"
-            borderRadius="34px"
-            bg="rgba(16, 18, 24, 0.9)"
-            minH="100%"
-            position="relative"
-            overflow="hidden"
-          >
-            <Box
+      <Box
+        position="relative"
+        overflow="hidden"
+        borderWidth="1px"
+        borderRadius="34px"
+        bg={palette.cardBg}
+        boxShadow={palette.cardShadow}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <Box
+          position="absolute"
+          top={mode === "dark" ? "22%" : "28%"}
+          right={mode === "dark" ? "16%" : "20%"}
+          w={["360px", "520px", "700px"]}
+          h={["360px", "520px", "700px"]}
+          borderRadius="full"
+          bg={palette.heroGlow}
+          filter="blur(28px)"
+          opacity={mode === "dark" ? 1 : 0.95}
+        />
+
+        <Box minH="200vh" position="relative">
+          <Box position="sticky" top="0" h="100vh" display="flex" alignItems="center" justifyContent="center">
+            <VStack
               position="absolute"
-              inset="auto -80px -80px auto"
-              w="280px"
-              h="280px"
-              borderRadius="full"
-              bg="radial-gradient(circle, rgba(246,196,90,0.32) 0%, rgba(246,196,90,0) 70%)"
-            />
-            <VStack align="stretch" spacing={7} position="relative">
-              <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs">
-                01. LANDING PAGE
+              left={["24px", "48px", "80px"]}
+              maxW="520px"
+              align="flex-start"
+              spacing={5}
+              zIndex={10}
+            >
+              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs">
+                VOUCH PLATFORM
+              </Text>
+              <Text fontSize={["4xl", "5xl", "6xl"]} lineHeight="1.02" fontWeight="bold" color={palette.pageText}>
+                Smarter Trust Scoring for the{" "}
+                <Text as="span" color={palette.accentSoft}>
+                  Invisible Economy
+                </Text>
+              </Text>
+              <Text color={palette.mutedText} fontSize="lg" maxW="460px">
+                Analyze behavior, detect fraud, and build trust instantly with a smoother Vouch experience across every page.
               </Text>
 
-              <Box>
-                <Text
-                  fontSize={["4xl", "5xl", "6xl"]}
-                  lineHeight="1.05"
-                  fontWeight="bold"
-                  maxW="720px"
-                >
-                  AI Credit Intelligence for the{" "}
-                  <Text as="span" color="#f6c45a">
-                    Invisible Economy
-                  </Text>
+              <Box w="100%" maxW="420px">
+                <Text color={palette.pageText} mb={3} fontWeight="semibold">
+                  User ID
                 </Text>
-                <Text color="#c7b894" mt={5} maxW="620px" fontSize="lg">
-                  Axiom turns behavioral finance signals into explainable trust
-                  scores with the same backend you already built.
-                </Text>
+                <Input
+                  value={userId}
+                  onChange={(event) => setUserId(event.target.value)}
+                  placeholder="user_123_abc"
+                  h="56px"
+                  borderRadius="18px"
+                  bg={palette.inputBg}
+                  color={palette.inputText}
+                  borderColor={palette.inputBorder}
+                  _placeholder={{ color: palette.mutedText }}
+                />
               </Box>
 
-              <HStack spacing={4} flexWrap="wrap">
-                <Button
-                  as={NextLink}
-                  href="/evaluate"
-                  h="56px"
-                  px={8}
-                  borderRadius="18px"
-                  bg="#f6c45a"
-                  color="#17130b"
-                  _hover={{ bg: "#ffd67d" }}
-                >
-                  Run Evaluation
-                </Button>
-                <Button
-                  as={NextLink}
-                  href="/dashboard"
-                  variant="outline"
-                  h="56px"
-                  px={8}
-                  borderRadius="18px"
-                  borderColor="rgba(246,196,90,0.4)"
-                  color="#f6ead1"
-                  _hover={{ bg: "rgba(246,196,90,0.08)" }}
-                >
-                  View Demo
-                </Button>
-              </HStack>
-
-              <SimpleGrid columns={[1, 2, 4]} spacing={4}>
-                {featureCards.map((card) => (
-                  <Box
-                    key={card.title}
-                    p={4}
-                    borderWidth="1px"
-                    borderRadius="18px"
-                    bg="rgba(255,255,255,0.02)"
-                  >
-                    <Text fontWeight="bold" mb={2}>
-                      {card.title}
-                    </Text>
-                    <Text color="#a99972" fontSize="sm">
-                      {card.text}
-                    </Text>
-                  </Box>
-                ))}
-              </SimpleGrid>
+              <Button
+                as={NextLink}
+                href="/landing"
+                onClick={handleGetStarted}
+                h="58px"
+                px={9}
+                borderRadius="18px"
+                bg={palette.buttonBg}
+                color={palette.buttonText}
+                _hover={{ bg: palette.buttonHover }}
+              >
+                Get Started
+              </Button>
             </VStack>
-          </Box>
-        </GridItem>
 
-        <GridItem>
-          <VStack spacing={6} align="stretch">
             <Box
-              p={[6, 7]}
+              position="absolute"
+              right={["-8px", "20px", "70px"]}
+              w={["360px", "500px", "620px"]}
+              h={["360px", "500px", "620px"]}
+              borderRadius="32px"
+              bg={palette.heroStageBg}
               borderWidth="1px"
-              borderRadius="30px"
-              bg="#020202"
-              minH="280px"
-              position="relative"
+              borderColor={palette.inputBorder}
               overflow="hidden"
             >
-              <Text color="#f6c45a" fontSize="sm" letterSpacing="0.14em" mb={4}>
-                AXIOM VISUAL ENGINE
-              </Text>
-              <Flex justify="center" align="center" py={2} minH="320px" position="relative">
-                <Box
-                  position="absolute"
-                  inset="8% 8% 8% 8%"
-                  borderRadius="28px"
-                  bg="radial-gradient(circle at 62% 42%, rgba(255,186,64,0.08), transparent 24%), radial-gradient(circle at 38% 64%, rgba(255,224,149,0.06), transparent 28%), linear-gradient(180deg, rgba(8,8,8,0.82) 0%, rgba(1,1,1,0.96) 100%)"
-                />
+              <motion.img
+                src="/gold-hand-transparent.png"
+                alt="Golden hand"
+                style={{ y: yHand, rotate: rotateHand }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute right-0 bottom-0 w-[480px] md:w-[560px] lg:w-[620px]"
+              />
 
-                <MotionBox
-                  position="relative"
-                  w="100%"
-                  maxW="430px"
-                  style={{ y: yHand, rotate }}
-                  zIndex={2}
-                  filter="drop-shadow(0 42px 48px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 24px rgba(246, 196, 90, 0.22))"
-                >
-                  <Image
-                    src="/gold-hand-transparent.png"
-                    alt="Golden hand"
-                    width={520}
-                    height={420}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      objectFit: "contain",
-                    }}
-                    priority
-                  />
-
-                  <MotionBox
-                    position="absolute"
-                    top="45%"
-                    right="15%"
-                    w={["128px", "168px"]}
-                    h={["88px", "112px"]}
-                    zIndex={2}
-                    borderRadius="24px"
-                    bg="radial-gradient(circle at 35% 50%, rgba(246,196,90,0.24), rgba(246,196,90,0.02) 58%, rgba(0,0,0,0) 80%)"
-                    filter="blur(12px)"
-                    style={{ y: cardLift }}
-                  />
-
-                  <MotionBox
-                    position="absolute"
-                    top="42%"
-                    right="13%"
-                    w={["152px", "195px"]}
-                    zIndex={3}
-                    style={{ y: yCard, rotate, scale: cardScale }}
-                    filter="drop-shadow(0 28px 42px rgba(0, 0, 0, 0.46)) drop-shadow(0 0 22px rgba(246, 196, 90, 0.22))"
-                  >
-                    <Image
-                      src="/credit-card-transparent.png"
-                      alt="Credit card"
-                      width={260}
-                      height={180}
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        objectFit: "contain",
-                        transform: "perspective(900px) rotate(-18deg) rotateX(16deg) rotateY(-12deg)",
-                        transformOrigin: "bottom left",
-                      }}
-                    />
-                  </MotionBox>
-                </MotionBox>
-              </Flex>
-              <Text color="#b7ab8b" textAlign="center">
-                Hand and card now use the scroll animation logic you shared.
-              </Text>
+              <motion.img
+                src="/credit-card-transparent.png"
+                alt="Credit card"
+                style={{
+                  y: yCard,
+                  rotate: rotateCard,
+                  rotateX,
+                  rotateY,
+                }}
+                animate={{ y: [0, -20, 0] }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute right-[70px] top-[19%] w-[250px] md:w-[300px] lg:w-[340px] origin-bottom-left rotate-[12deg]"
+              />
             </Box>
-
-            <Box
-              p={[5, 6]}
-              borderWidth="1px"
-              borderRadius="30px"
-              bg="rgba(16, 18, 24, 0.9)"
-            >
-              <Text color="#f6c45a" fontSize="sm" letterSpacing="0.14em" mb={4}>
-                PIPELINE PREVIEW
-              </Text>
-              <VStack align="stretch" spacing={4}>
-                <Box>
-                  <Text mb={2}>Collecting Data</Text>
-                  <Progress value={100} size="sm" borderRadius="full" />
-                </Box>
-                <Box>
-                  <Text mb={2}>Building Trust Graph</Text>
-                  <Progress value={84} size="sm" borderRadius="full" />
-                </Box>
-                <Box>
-                  <Text mb={2}>Generating Score</Text>
-                  <Progress value={72} size="sm" borderRadius="full" />
-                </Box>
-              </VStack>
-            </Box>
-          </VStack>
-        </GridItem>
-      </Grid>
+          </Box>
+        </Box>
+      </Box>
     </Container>
   );
 }

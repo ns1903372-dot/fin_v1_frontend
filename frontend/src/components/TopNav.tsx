@@ -1,47 +1,66 @@
 import { Box, Button, HStack, Link, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
+import { useThemeMode } from "@/components/theme-mode";
 
 export function TopNav() {
+  const { mode, palette, toggleMode } = useThemeMode();
+
   return (
     <Box
       mb={8}
       px={[4, 6]}
       py={4}
       borderWidth="1px"
-      borderColor="rgba(245, 195, 86, 0.18)"
+      borderColor={palette.navBorder}
       borderRadius="24px"
-      bg="rgba(12, 15, 20, 0.9)"
-      boxShadow="0 20px 60px rgba(0, 0, 0, 0.35)"
-      backdropFilter="blur(12px)"
+      bg={palette.navBg}
+      boxShadow={palette.navShadow}
+      backdropFilter="blur(10px)"
     >
       <HStack spacing={6} align="center" justify="space-between" flexWrap="wrap">
-        <Text fontWeight="bold" fontSize="xl" letterSpacing="0.16em" color="#f6c45a">
-          AXIOM
+        <Text fontWeight="bold" fontSize="xl" letterSpacing="0.16em" color={palette.navAccent}>
+          VOUCH
         </Text>
-        <HStack spacing={[3, 5]} color="#dbc79d" flexWrap="wrap">
-          <Link as={NextLink} href="/" _hover={{ color: "#f6c45a" }}>
+        <HStack spacing={[3, 5]} color={palette.navText} flexWrap="wrap">
+          <Link as={NextLink} href="/" _hover={{ color: palette.accentSoft }}>
             Home
           </Link>
-          <Link as={NextLink} href="/evaluate" _hover={{ color: "#f6c45a" }}>
-            Evaluate
+          <Link as={NextLink} href="/landing" _hover={{ color: palette.accentSoft }}>
+            Landing
           </Link>
-          <Link as={NextLink} href="/dashboard" _hover={{ color: "#f6c45a" }}>
-            Dashboard
+          <Link as={NextLink} href="/evaluate" _hover={{ color: palette.accentSoft }}>
+            Result
           </Link>
-          <Link as={NextLink} href="/verify" _hover={{ color: "#f6c45a" }}>
-            Verify
+          <Link as={NextLink} href="/more-info" _hover={{ color: palette.accentSoft }}>
+            More Info
           </Link>
         </HStack>
-        <Button
-          as={NextLink}
-          href="/evaluate"
-          size="sm"
-          bg="#f6c45a"
-          color="#14120d"
-          _hover={{ bg: "#ffd67d" }}
-        >
-          Get Started
-        </Button>
+        <HStack spacing={3}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            borderRadius="999px"
+            borderColor={palette.inputBorder}
+            color={palette.navText}
+            bg="transparent"
+            _hover={{ borderColor: palette.accent, color: palette.navAccent }}
+            onClick={toggleMode}
+          >
+            {mode === "light" ? "Dark Theme" : "Light Theme"}
+          </Button>
+          <Button
+            as={NextLink}
+            href="/landing"
+            size="sm"
+            bg={palette.buttonBg}
+            color={palette.buttonText}
+            borderRadius="999px"
+            _hover={{ bg: palette.buttonHover }}
+          >
+            Get Started
+          </Button>
+        </HStack>
       </HStack>
     </Box>
   );

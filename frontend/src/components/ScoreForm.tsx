@@ -15,27 +15,31 @@ import {
   HStack,
   Input,
   Progress,
-  Radio,
-  Stack,
-  Switch,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { scoreUser, ScoreRequest, ScoreResponse } from "@/lib/api";
-import {
-  saveScoreHistory,
-  ScoreHistoryEntry,
-  ScoreInputMethod,
-} from "@/lib/storage";
+import { saveScoreHistory, ScoreHistoryEntry, ScoreInputMethod } from "@/lib/storage";
 
 type ScoreFormValues = {
   user_id: string;
-  input_type: "consent_handle" | "upi_id" | "phone_number";
   consent_handle?: string;
   upi_id?: string;
   phone_number?: string;
+  parent_vpa?: string;
+  student_mail_verification?: string;
+  landlord_vpa?: string;
   include_reasons: boolean;
+};
+
+type ScoreFormProps = {
+  title?: string;
+  eyebrow?: string;
+  description?: string;
+  redirectTo?: string;
+  showPipeline?: boolean;
+  showUserIdField?: boolean;
 };
 
 const pipelineSteps = [
@@ -45,19 +49,54 @@ const pipelineSteps = [
   "Preparing score insights",
 ];
 
-function formatRequest(values: ScoreFormValues): ScoreRequest {
+const methodCards: Array<{
+  id: ScoreInputMethod | "documents";
+  title: string;
+  description: string;
+}> = [
+  {
+    id: "upi_id",
+    title: "UPI ID",
+    description: "Score a user directly from a UPI handle.",
+  },
+  {
+    id: "phone_number",
+    title: "Phone No",
+    description: "Fetch linked bank accounts from a phone number.",
+  },
+  {
+    id: "documents",
+    title: "Document Upload",
+    description: "Attach bank, rent, or utility proofs for evaluation context.",
+  },
+];
+
+const verificationCards = [
+  {
+    id: "student_verification",
+    title: "Student Verification",
+    description: "Attach education-linked proof signals for student trust evaluation.",
+  },
+  {
+    id: "rent_verification",
+    title: "Rent Verification",
+    description: "Use rent and landlord-linked details as optional verification context.",
+  },
+] as const;
+
+function formatRequest(values: ScoreFormValues, method: ScoreInputMethod): ScoreRequest {
   const request: ScoreRequest = {
     user_id: values.user_id,
     include_reasons: values.include_reasons,
   };
 
-  if (values.input_type === "consent_handle") {
+  if (method === "consent_handle") {
     request.consent_handle = values.consent_handle;
   }
-  if (values.input_type === "upi_id") {
+  if (method === "upi_id") {
     request.upi_id = values.upi_id;
   }
-  if (values.input_type === "phone_number") {
+  if (method === "phone_number") {
     request.phone_number = values.phone_number;
   }
 
@@ -77,32 +116,45 @@ function buildHistoryEntry(
   };
 }
 
-export function ScoreForm() {
+export function ScoreForm({
+  title = "Choose Your Input Method",
+  eyebrow = "02. INPUT METHODS",
+  description = "Pick how you want to identify the user, then submit for scoring.",
+  redirectTo = "/evaluate",
+  showPipeline = true,
+  showUserIdField = true,
+}: ScoreFormProps) {
   const router = useRouter();
+  const [selectedMethod, setSelectedMethod] = useState<ScoreInputMethod | null>(null);
+  const [selectedVerification, setSelectedVerification] = useState<string | null>(null);
+  const [rentVerificationMethod, setRentVerificationMethod] = useState<"landlord_vpa" | "documents" | null>(null);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [documents, setDocuments] = useState<File[]>([]);
+  const [rentDocuments, setRentDocuments] = useState<File[]>([]);
+  const [methodError, setMethodError] = useState<string | null>(null);
   const [result, setResult] = useState<ScoreResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pipelineStage, setPipelineStage] = useState(0);
   const [progress, setProgress] = useState(12);
-  const [documents, setDocuments] = useState<File[]>([]);
 
   const {
     register,
     handleSubmit,
     setError: setFieldError,
-    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ScoreFormValues>({
     defaultValues: {
       user_id: "",
-      input_type: "upi_id",
       consent_handle: "",
       upi_id: "",
       phone_number: "",
+      parent_vpa: "",
+      student_mail_verification: "",
+      landlord_vpa: "",
       include_reasons: true,
     },
   });
-
-  const inputType = watch("input_type");
 
   useEffect(() => {
     if (!isSubmitting) {
@@ -126,19 +178,58 @@ export function ScoreForm() {
     return () => window.clearInterval(timer);
   }, [isSubmitting]);
 
+  useEffect(() => {
+    if (showUserIdField || typeof window === "undefined") {
+      return;
+    }
+
+    const savedUserId = window.localStorage.getItem("vouch_user_id");
+    if (!savedUserId) {
+      return;
+    }
+
+    setValue("user_id", savedUserId);
+  }, [setValue, showUserIdField]);
+
   const activeInputLabel = useMemo(() => {
-    if (inputType === "consent_handle") {
+    if (selectedMethod === "consent_handle") {
       return "Consent Handle";
     }
-    if (inputType === "phone_number") {
+    if (selectedMethod === "phone_number") {
       return "Phone Number";
     }
-    return "UPI ID";
-  }, [inputType]);
+    if (selectedMethod === "upi_id") {
+      return "UPI ID";
+    }
+    return "Selected Method";
+  }, [selectedMethod]);
+
+  function chooseMethod(method: ScoreInputMethod | "documents") {
+    setMethodError(null);
+    setSelectedVerification(null);
+    setRentVerificationMethod(null);
+    if (method === "documents") {
+      setSelectedMethod(null);
+      setShowDocuments(true);
+      return;
+    }
+    setShowDocuments(false);
+    setSelectedMethod(method);
+  }
+
+  function chooseVerification(verification: string) {
+    setSelectedMethod(null);
+    setShowDocuments(false);
+    setSelectedVerification((current) => (current === verification ? null : verification));
+    if (verification !== "rent_verification") {
+      setRentVerificationMethod(null);
+    }
+  }
 
   async function onSubmit(values: ScoreFormValues) {
     setError(null);
     setResult(null);
+    setMethodError(null);
 
     const userId = values.user_id.trim();
     if (!userId) {
@@ -149,7 +240,32 @@ export function ScoreForm() {
       return;
     }
 
-    const request = formatRequest(values);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("vouch_user_id", userId);
+    }
+
+    if (!selectedMethod) {
+      setMethodError("Choose UPI ID or Phone No before running evaluation.");
+      return;
+    }
+
+    if (selectedMethod === "upi_id" && !values.upi_id?.trim()) {
+      setFieldError("upi_id", {
+        type: "required",
+        message: "UPI ID is required",
+      });
+      return;
+    }
+
+    if (selectedMethod === "phone_number" && !values.phone_number?.trim()) {
+      setFieldError("phone_number", {
+        type: "required",
+        message: "Phone number is required",
+      });
+      return;
+    }
+
+    const request = formatRequest(values, selectedMethod);
     request.user_id = userId;
 
     try {
@@ -157,14 +273,11 @@ export function ScoreForm() {
       setProgress(100);
       setPipelineStage(pipelineSteps.length - 1);
       setResult(response);
-
-      saveScoreHistory(
-        buildHistoryEntry(request, values.input_type, response)
-      );
+      saveScoreHistory(buildHistoryEntry(request, selectedMethod, response));
 
       window.setTimeout(() => {
-        void router.push("/dashboard");
-      }, 550);
+        void router.push(redirectTo);
+      }, 500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to fetch score.");
     }
@@ -176,7 +289,7 @@ export function ScoreForm() {
   }
 
   return (
-    <Grid templateColumns={["1fr", null, "1.05fr 0.95fr"]} gap={8}>
+    <Grid templateColumns={showPipeline ? ["1fr", null, "1.05fr 0.95fr"] : ["1fr"]} gap={8}>
       <GridItem>
         <Box
           p={[6, 8]}
@@ -188,131 +301,314 @@ export function ScoreForm() {
           <VStack align="stretch" spacing={6}>
             <Box>
               <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
-                02. INPUT PAGE
+                {eyebrow}
               </Text>
               <Text fontSize={["3xl", "4xl"]} fontWeight="bold">
-                Evaluate User
+                {title}
               </Text>
               <Text color="#b7ab8b" mt={2}>
-                Enter a UPI ID, consent handle, or phone number to run the same
-                backend scoring pipeline.
+                {description}
               </Text>
+            </Box>
+
+            <Box>
+              <Text color="#e8d7ac" mb={3} fontWeight="semibold">
+                Input Methods
+              </Text>
+              <Grid templateColumns={["1fr", null, "repeat(3, 1fr)"]} gap={4}>
+                {methodCards.map((method) => {
+                  const active =
+                    method.id === selectedMethod || (method.id === "documents" && showDocuments);
+
+                  return (
+                    <VStack key={method.id} align="stretch" spacing={3}>
+                      <Button
+                        type="button"
+                        onClick={() => chooseMethod(method.id)}
+                        h={["64px", "72px"]}
+                        px={6}
+                        py={4}
+                        justifyContent="center"
+                        textAlign="center"
+                        borderRadius="18px"
+                        borderWidth="1px"
+                        fontSize="md"
+                        fontWeight="bold"
+                        boxShadow={active ? "0 12px 28px rgba(246,196,90,0.18)" : "0 10px 24px rgba(0,0,0,0.22)"}
+                        bg={active ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)" : "linear-gradient(180deg, rgba(34,37,46,0.96) 0%, rgba(18,20,27,0.98) 100%)"}
+                        borderColor={active ? "#f6c45a" : "rgba(246,196,90,0.2)"}
+                        color={active ? "#17130b" : "#f6ead1"}
+                        _hover={{
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 14px 30px rgba(246,196,90,0.24)",
+                          borderColor: "#f6c45a",
+                        }}
+                        _active={{ transform: "translateY(0)" }}
+                        transition="all 0.2s ease"
+                      >
+                        <VStack align="center" spacing={1}>
+                          <Text color="inherit" fontWeight="bold">
+                            {method.title}
+                          </Text>
+                          <Text
+                            color={active ? "rgba(23,19,11,0.8)" : "#a99972"}
+                            whiteSpace="normal"
+                            fontSize="xs"
+                            fontWeight="normal"
+                            maxW="180px"
+                          >
+                            {method.description}
+                          </Text>
+                        </VStack>
+                      </Button>
+
+                      {method.id === "upi_id" && selectedMethod === "upi_id" && (
+                        <FormControl isInvalid={!!errors.upi_id}>
+                          <Input
+                            {...register("upi_id")}
+                            placeholder="user@bankupi"
+                            h="52px"
+                            borderRadius="16px"
+                            bg="rgba(10, 12, 16, 0.95)"
+                          />
+                          <Text color="#ff9075" mt={1} fontSize="sm">
+                            {errors.upi_id?.message}
+                          </Text>
+                        </FormControl>
+                      )}
+
+                      {method.id === "phone_number" && selectedMethod === "phone_number" && (
+                        <FormControl isInvalid={!!errors.phone_number}>
+                          <Input
+                            {...register("phone_number")}
+                            placeholder="+91 9876543210"
+                            h="52px"
+                            borderRadius="16px"
+                            bg="rgba(10, 12, 16, 0.95)"
+                          />
+                          <Text color="#ff9075" mt={1} fontSize="sm">
+                            {errors.phone_number?.message}
+                          </Text>
+                        </FormControl>
+                      )}
+
+                      {method.id === "documents" && showDocuments && (
+                        <FormControl>
+                          <Input
+                            type="file"
+                            multiple
+                            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                            onChange={handleDocumentChange}
+                            h="auto"
+                            py={3}
+                            borderRadius="16px"
+                            bg="rgba(10, 12, 16, 0.95)"
+                          />
+                          <Text mt={2} color="#a99972" fontSize="sm">
+                            Add bank statements, utility bills, rent proofs, or other supporting files.
+                          </Text>
+                          {documents.length > 0 && (
+                            <VStack mt={3} align="stretch" spacing={2}>
+                              {documents.map((file) => (
+                                <Text key={`${file.name}-${file.size}`} color="#d8caab" fontSize="sm">
+                                  {file.name}
+                                </Text>
+                              ))}
+                            </VStack>
+                          )}
+                        </FormControl>
+                      )}
+                    </VStack>
+                  );
+                })}
+              </Grid>
+              {methodError && (
+                <Text color="#ff9075" mt={3} fontSize="sm">
+                  {methodError}
+                </Text>
+              )}
+            </Box>
+
+            <Box>
+              <Text color="#e8d7ac" mb={3} fontWeight="semibold">
+                Optional Verification
+              </Text>
+              <Grid templateColumns={["1fr", null, "repeat(2, 1fr)"]} gap={4}>
+                {verificationCards.map((verification) => {
+                  const active = verification.id === selectedVerification;
+
+                  return (
+                    <VStack key={verification.id} align="stretch" spacing={3}>
+                      <Button
+                        type="button"
+                        onClick={() => chooseVerification(verification.id)}
+                        h={["64px", "72px"]}
+                        px={6}
+                        py={4}
+                        justifyContent="center"
+                        textAlign="center"
+                        borderRadius="18px"
+                        borderWidth="1px"
+                        fontSize="md"
+                        fontWeight="bold"
+                        boxShadow={active ? "0 12px 28px rgba(246,196,90,0.18)" : "0 10px 24px rgba(0,0,0,0.22)"}
+                        bg={active ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)" : "linear-gradient(180deg, rgba(34,37,46,0.96) 0%, rgba(18,20,27,0.98) 100%)"}
+                        borderColor={active ? "#f6c45a" : "rgba(246,196,90,0.2)"}
+                        color={active ? "#17130b" : "#f6ead1"}
+                        _hover={{
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 14px 30px rgba(246,196,90,0.24)",
+                          borderColor: "#f6c45a",
+                        }}
+                        _active={{ transform: "translateY(0)" }}
+                        transition="all 0.2s ease"
+                      >
+                        <VStack align="center" spacing={1}>
+                          <Text color="inherit" fontWeight="bold">
+                            {verification.title}
+                          </Text>
+                          <Text
+                            color={active ? "rgba(23,19,11,0.8)" : "#a99972"}
+                            whiteSpace="normal"
+                            fontSize="xs"
+                            fontWeight="normal"
+                            maxW="220px"
+                          >
+                            {verification.description}
+                          </Text>
+                        </VStack>
+                      </Button>
+
+                      {verification.id === "student_verification" && selectedVerification === "student_verification" && (
+                        <VStack align="stretch" spacing={3}>
+                          <FormControl>
+                            <Input
+                              {...register("parent_vpa")}
+                              placeholder="Parent VPA"
+                              h="52px"
+                              borderRadius="16px"
+                              bg="rgba(10, 12, 16, 0.95)"
+                            />
+                          </FormControl>
+                          <FormControl>
+                            <Input
+                              {...register("student_mail_verification")}
+                              placeholder="Student Mail Verification"
+                              h="52px"
+                              borderRadius="16px"
+                              bg="rgba(10, 12, 16, 0.95)"
+                            />
+                          </FormControl>
+                        </VStack>
+                      )}
+
+                      {verification.id === "rent_verification" && selectedVerification === "rent_verification" && (
+                        <VStack align="stretch" spacing={3}>
+                          <Grid templateColumns={["1fr", "1fr 1fr"]} gap={3}>
+                            <Button
+                              type="button"
+                              h="48px"
+                              borderRadius="16px"
+                              borderWidth="1px"
+                              bg={rentVerificationMethod === "landlord_vpa"
+                                ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)"
+                                : "rgba(255,255,255,0.03)"}
+                              borderColor={rentVerificationMethod === "landlord_vpa" ? "#f6c45a" : "rgba(246,196,90,0.18)"}
+                              color={rentVerificationMethod === "landlord_vpa" ? "#17130b" : "#f6ead1"}
+                              onClick={() => setRentVerificationMethod("landlord_vpa")}
+                              _hover={{ borderColor: "#f6c45a" }}
+                            >
+                              Landlord VPA
+                            </Button>
+                            <Button
+                              type="button"
+                              h="48px"
+                              borderRadius="16px"
+                              borderWidth="1px"
+                              bg={rentVerificationMethod === "documents"
+                                ? "linear-gradient(180deg, #f6c45a 0%, #d8a73b 100%)"
+                                : "rgba(255,255,255,0.03)"}
+                              borderColor={rentVerificationMethod === "documents" ? "#f6c45a" : "rgba(246,196,90,0.18)"}
+                              color={rentVerificationMethod === "documents" ? "#17130b" : "#f6ead1"}
+                              onClick={() => setRentVerificationMethod("documents")}
+                              _hover={{ borderColor: "#f6c45a" }}
+                            >
+                              Document Upload
+                            </Button>
+                          </Grid>
+
+                          {rentVerificationMethod === "landlord_vpa" && (
+                            <FormControl>
+                              <Input
+                                {...register("landlord_vpa")}
+                                placeholder="Landlord VPA"
+                                h="52px"
+                                borderRadius="16px"
+                                bg="rgba(10, 12, 16, 0.95)"
+                              />
+                            </FormControl>
+                          )}
+
+                          {rentVerificationMethod === "documents" && (
+                            <FormControl>
+                              <Input
+                                type="file"
+                                multiple
+                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                onChange={(event) => {
+                                  const files = event.target.files ? Array.from(event.target.files) : [];
+                                  setRentDocuments(files);
+                                }}
+                                h="auto"
+                                py={3}
+                                borderRadius="16px"
+                                bg="rgba(10, 12, 16, 0.95)"
+                              />
+                              <Text mt={2} color="#a99972" fontSize="sm">
+                                Upload rent agreement, receipts, or supporting rent documents.
+                              </Text>
+                              {rentDocuments.length > 0 && (
+                                <VStack mt={3} align="stretch" spacing={2}>
+                                  {rentDocuments.map((file) => (
+                                    <Text key={`${file.name}-${file.size}`} color="#d8caab" fontSize="sm">
+                                      {file.name}
+                                    </Text>
+                                  ))}
+                                </VStack>
+                              )}
+                            </FormControl>
+                          )}
+                        </VStack>
+                      )}
+                    </VStack>
+                  );
+                })}
+              </Grid>
             </Box>
 
             <form onSubmit={handleSubmit(onSubmit)}>
               <VStack spacing={5} align="stretch">
-                <FormControl isInvalid={!!errors.user_id}>
-                  <FormLabel color="#e8d7ac">User ID</FormLabel>
+                {showUserIdField ? (
+                  <FormControl isInvalid={!!errors.user_id}>
+                    <FormLabel color="#e8d7ac">User ID</FormLabel>
+                    <Input
+                      {...register("user_id")}
+                      placeholder="user_123_abc"
+                      h="56px"
+                      borderRadius="18px"
+                      bg="rgba(10, 12, 16, 0.95)"
+                      color="#f8eed7"
+                    />
+                    <Text color="#ff9075" mt={1} fontSize="sm">
+                      {errors.user_id?.message}
+                    </Text>
+                  </FormControl>
+                ) : (
                   <Input
                     {...register("user_id")}
-                    placeholder="user_123_abc"
-                    h="56px"
-                    borderRadius="18px"
-                    bg="rgba(10, 12, 16, 0.95)"
-                    color="#f8eed7"
+                    type="hidden"
                   />
-                  <Text color="#ff9075" mt={1} fontSize="sm">
-                    {errors.user_id?.message}
-                  </Text>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel color="#e8d7ac">Input Method</FormLabel>
-                  <Stack direction={["column", "row"]} spacing={4}>
-                    <Radio value="upi_id" {...register("input_type")}>
-                      UPI ID
-                    </Radio>
-                    <Radio value="phone_number" {...register("input_type")}>
-                      Phone Number
-                    </Radio>
-                    <Radio value="consent_handle" {...register("input_type")}>
-                      Consent Handle
-                    </Radio>
-                  </Stack>
-                </FormControl>
-
-                {inputType === "consent_handle" && (
-                  <FormControl>
-                    <FormLabel color="#e8d7ac">Consent Handle</FormLabel>
-                    <Input
-                      {...register("consent_handle")}
-                      placeholder="ch_1234567890"
-                      h="56px"
-                      borderRadius="18px"
-                      bg="rgba(10, 12, 16, 0.95)"
-                    />
-                  </FormControl>
                 )}
-
-                {inputType === "upi_id" && (
-                  <FormControl>
-                    <FormLabel color="#e8d7ac">UPI ID</FormLabel>
-                    <Input
-                      {...register("upi_id")}
-                      placeholder="user@bankupi"
-                      h="56px"
-                      borderRadius="18px"
-                      bg="rgba(10, 12, 16, 0.95)"
-                    />
-                  </FormControl>
-                )}
-
-                {inputType === "phone_number" && (
-                  <FormControl>
-                    <FormLabel color="#e8d7ac">Phone Number</FormLabel>
-                    <Input
-                      {...register("phone_number")}
-                      placeholder="+91 9876543210"
-                      h="56px"
-                      borderRadius="18px"
-                      bg="rgba(10, 12, 16, 0.95)"
-                    />
-                  </FormControl>
-                )}
-
-                <FormControl>
-                  <FormLabel color="#e8d7ac">Upload Documents</FormLabel>
-                  <Input
-                    type="file"
-                    multiple
-                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                    onChange={handleDocumentChange}
-                    h="auto"
-                    py={3}
-                    borderRadius="18px"
-                    bg="rgba(10, 12, 16, 0.95)"
-                  />
-                  <Text mt={2} color="#a99972" fontSize="sm">
-                    Add bank statements, utility bills, rent proofs, or other supporting files.
-                  </Text>
-                  {documents.length > 0 && (
-                    <VStack mt={3} align="stretch" spacing={2}>
-                      {documents.map((file) => (
-                        <Text key={`${file.name}-${file.size}`} color="#d8caab" fontSize="sm">
-                          {file.name}
-                        </Text>
-                      ))}
-                    </VStack>
-                  )}
-                </FormControl>
-
-                <Flex
-                  justify="space-between"
-                  align="center"
-                  px={4}
-                  py={3}
-                  borderWidth="1px"
-                  borderRadius="18px"
-                  bg="rgba(255,255,255,0.02)"
-                >
-                  <Box>
-                    <Text fontWeight="semibold">Explainability</Text>
-                    <Text color="#a99972" fontSize="sm">
-                      Include reason codes from the backend response.
-                    </Text>
-                  </Box>
-                  <Switch id="include_reasons" {...register("include_reasons")} />
-                </Flex>
 
                 <Button
                   type="submit"
@@ -353,7 +649,7 @@ export function ScoreForm() {
                 <Box>
                   <AlertTitle>Evaluation complete</AlertTitle>
                   <AlertDescription>
-                    Score {result.axiom_score} generated. Opening dashboard now.
+                    Score {result.axiom_score} generated. Opening next page now.
                   </AlertDescription>
                 </Box>
               </Alert>
@@ -362,97 +658,67 @@ export function ScoreForm() {
         </Box>
       </GridItem>
 
-      <GridItem>
-        <VStack spacing={6} align="stretch">
-          <Box
-            p={[6, 8]}
-            borderWidth="1px"
-            borderRadius="30px"
-            bg="rgba(16, 18, 24, 0.92)"
-            minH="340px"
-          >
-            <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
-              03. AI PIPELINE
-            </Text>
-            <Text fontSize="2xl" fontWeight="bold" mb={2}>
-              AI Evaluation in Progress
-            </Text>
-            <Text color="#b7ab8b" mb={8}>
-              The interface mirrors your wireframe, while the API call still hits
-              the original scoring backend.
-            </Text>
-
-            <HStack justify="space-between" align="flex-start" spacing={3} mb={8}>
-              {pipelineSteps.map((step, index) => {
-                const active = index <= pipelineStage || result;
-                return (
-                  <VStack key={step} spacing={3} flex="1" align="center">
-                    <Flex
-                      w="62px"
-                      h="62px"
-                      borderRadius="full"
-                      align="center"
-                      justify="center"
-                      borderWidth="2px"
-                      borderColor={active ? "#f6c45a" : "rgba(255,255,255,0.18)"}
-                      color={active ? "#f6c45a" : "#7f7661"}
-                    >
-                      <Text fontWeight="bold">{index + 1}</Text>
-                    </Flex>
-                    <Text textAlign="center" fontSize="sm" color={active ? "#f5e3ba" : "#8d8268"}>
-                      {step}
-                    </Text>
-                  </VStack>
-                );
-              })}
-            </HStack>
-
-            <Box
-              p={5}
-              borderWidth="1px"
-              borderRadius="22px"
-              bg="rgba(255,255,255,0.02)"
-            >
-              <Text color="#c7b17c" mb={3}>
-                Processing {activeInputLabel}
+      {showPipeline && (
+        <GridItem>
+          <VStack spacing={6} align="stretch">
+            <Box p={[6, 8]} borderWidth="1px" borderRadius="30px" bg="rgba(16, 18, 24, 0.92)" minH="340px">
+              <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={2}>
+                03. AI PIPELINE
               </Text>
-              <Progress
-                value={progress}
-                size="sm"
-                borderRadius="full"
-                sx={{
-                  "& > div": {
-                    background:
-                      "linear-gradient(90deg, rgba(244,190,75,0.7) 0%, #f6c45a 100%)",
-                  },
-                }}
-              />
-              <Text mt={3} color="#a99972" fontSize="sm">
-                {isSubmitting
-                  ? pipelineSteps[pipelineStage]
-                  : "Ready to analyze behavioral patterns and trust signals."}
+              <Text fontSize="2xl" fontWeight="bold" mb={2}>
+                AI Evaluation in Progress
               </Text>
+              <Text color="#b7ab8b" mb={8}>
+                The interface mirrors your wireframe, while the API call still hits the original scoring backend.
+              </Text>
+
+              <HStack justify="space-between" align="flex-start" spacing={3} mb={8}>
+                {pipelineSteps.map((step, index) => {
+                  const active = index <= pipelineStage || result;
+                  return (
+                    <VStack key={step} spacing={3} flex="1" align="center">
+                      <Flex
+                        w="62px"
+                        h="62px"
+                        borderRadius="full"
+                        align="center"
+                        justify="center"
+                        borderWidth="2px"
+                        borderColor={active ? "#f6c45a" : "rgba(255,255,255,0.18)"}
+                        color={active ? "#f6c45a" : "#7f7661"}
+                      >
+                        <Text fontWeight="bold">{index + 1}</Text>
+                      </Flex>
+                      <Text textAlign="center" fontSize="sm" color={active ? "#f5e3ba" : "#8d8268"}>
+                        {step}
+                      </Text>
+                    </VStack>
+                  );
+                })}
+              </HStack>
+
+              <Box p={5} borderWidth="1px" borderRadius="22px" bg="rgba(255,255,255,0.02)">
+                <Text color="#c7b17c" mb={3}>
+                  Processing {activeInputLabel}
+                </Text>
+                <Progress
+                  value={progress}
+                  size="sm"
+                  borderRadius="full"
+                  sx={{
+                    "& > div": {
+                      background: "linear-gradient(90deg, rgba(244,190,75,0.7) 0%, #f6c45a 100%)",
+                    },
+                  }}
+                />
+                <Text mt={3} color="#a99972" fontSize="sm">
+                  {isSubmitting ? pipelineSteps[pipelineStage] : "Ready to analyze behavioral patterns and trust signals."}
+                </Text>
+              </Box>
             </Box>
-          </Box>
-
-            <Box
-              p={6}
-              borderWidth="1px"
-            borderRadius="24px"
-            bg="rgba(16, 18, 24, 0.92)"
-          >
-            <Text color="#f6c45a" fontWeight="semibold" mb={3}>
-              Why This Matches Your Backend
-            </Text>
-            <VStack align="stretch" spacing={3} color="#c6b894">
-              <Text>Same `/v1/score` API call and request fields.</Text>
-              <Text>Same backend-generated `axiom_score`, tier, confidence, and reasons.</Text>
-              <Text>Uploaded documents are currently UI-only, so your backend logic remains unchanged.</Text>
-              <Text>Frontend only changes the experience, not the scoring logic.</Text>
-            </VStack>
-          </Box>
-        </VStack>
-      </GridItem>
+          </VStack>
+        </GridItem>
+      )}
     </Grid>
   );
 }
