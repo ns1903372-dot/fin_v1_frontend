@@ -24,12 +24,12 @@ function getTierColor(tier: string) {
   const normalizedTier = tier.toLowerCase();
 
   if (normalizedTier === "prime" || normalizedTier === "high") {
-    return "#980002";
+    return "#6fe08d";
   }
   if (normalizedTier === "medium") {
-    return "#E25905";
+    return "#f2cf63";
   }
-  return "#C90000";
+  return "#ff6b6b";
 }
 
 function getNeighborhoodDensity(score: number) {
@@ -45,24 +45,21 @@ function getNeighborhoodDensity(score: number) {
 function DetailCard({
   title,
   children,
-  accent = "#F29E08",
 }: {
   title: string;
   children: React.ReactNode;
-  accent?: string;
 }) {
   return (
     <Box
       p={[5, 6]}
       borderWidth="1px"
       borderRadius="28px"
-      bg="rgba(255,250,241,0.98)"
-      boxShadow="0 16px 28px rgba(104, 3, 14, 0.05)"
+      bg="rgba(16, 18, 24, 0.92)"
+      boxShadow="0 18px 34px rgba(0, 0, 0, 0.35)"
       position="relative"
       overflow="hidden"
     >
-      <Box position="absolute" left="0" top="0" bottom="0" w="6px" bg={accent} />
-      <Text fontSize="2xl" fontWeight="bold" color="#231911" mb={4}>
+      <Text fontSize="2xl" fontWeight="bold" color="#f6ead1" mb={4}>
         {title}
       </Text>
       {children}
@@ -167,46 +164,42 @@ export default function MoreInfoPage() {
       <TopNav />
       <VStack spacing={8} align="stretch">
         {!latest && (
-          <Alert borderRadius="18px" bg="rgba(242, 158, 8, 0.16)" color="#3b2415">
+          <Alert borderRadius="18px" bg="rgba(245, 195, 86, 0.16)" color="#f6ead1">
             <AlertIcon />
             No live score found yet. Run an evaluation first, then open More Info to see detailed score intelligence.
           </Alert>
         )}
 
-        <Grid templateColumns={["1fr", null, "0.78fr 1.22fr"]} gap={[6, 8]} alignItems="start">
+        <Grid templateColumns={["1fr", null, "0.8fr 1.2fr"]} gap={[6, 8]} alignItems="start">
           <GridItem>
             <VStack spacing={6} align="stretch">
               <Box
                 p={[6, 7]}
                 borderWidth="1px"
                 borderRadius="32px"
-                bg="rgba(255,250,241,0.98)"
-                boxShadow="0 18px 34px rgba(104, 3, 14, 0.06)"
+                bg="rgba(16, 18, 24, 0.96)"
+                boxShadow="0 18px 34px rgba(0, 0, 0, 0.35)"
               >
                 <Box
                   position="relative"
                   h="200px"
                   borderRadius="28px"
-                  bg="linear-gradient(135deg, rgba(242,158,8,0.18) 0%, rgba(226,89,5,0.10) 50%, rgba(152,0,2,0.08) 100%)"
+                  bg="radial-gradient(circle at top, rgba(246,196,90,0.16) 0%, rgba(16,18,24,0.92) 44%, rgba(10,11,15,0.98) 100%)"
                   overflow="hidden"
                   mb={5}
                 >
-                  <Box position="absolute" top="18px" left="18px" w="78px" h="78px" borderRadius="24px" bg="#F29E08" />
-                  <Box position="absolute" top="18px" right="18px" w="78px" h="78px" borderRadius="24px" bg="#EC8805" />
-                  <Box position="absolute" bottom="18px" left="18px" w="78px" h="78px" borderRadius="24px" bg="#E25905" />
-                  <Box position="absolute" bottom="18px" right="18px" w="78px" h="78px" borderRadius="24px" bg="#980002" />
                   <Flex position="absolute" inset="0" align="center" justify="center">
                     <Box
                       w="170px"
                       h="170px"
                       borderRadius="full"
-                      border="16px solid rgba(104,3,14,0.08)"
+                      border="16px solid rgba(255,255,255,0.08)"
                       borderTopColor={tierColor}
                       borderRightColor={tierColor}
-                      bg="rgba(255,255,255,0.68)"
+                      bg="rgba(255,255,255,0.02)"
                     >
                       <Flex h="100%" align="center" justify="center" direction="column">
-                        <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#231911">
+                        <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#f6ead1">
                           {score}
                         </Text>
                         <Text color={tierColor} fontWeight="bold" fontSize="sm" letterSpacing="0.14em">
@@ -217,44 +210,44 @@ export default function MoreInfoPage() {
                   </Flex>
                 </Box>
 
-                <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#231911">
+                <Text fontSize="4xl" fontWeight="900" lineHeight="0.95" color="#f6ead1">
                   More Info
                 </Text>
-                <Text mt={3} color="#6f5242">
+                <Text mt={3} color="#b7ab8b">
                   A deeper Vouch explanation of score drivers, local trust density, transaction patterns, and what to do next.
                 </Text>
               </Box>
 
-              <DetailCard title="Score Snapshot" accent="#F29E08">
+              <DetailCard title="Score Snapshot">
                 <VStack align="stretch" spacing={4}>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Vouch Score</Text>
-                    <Text mt={1} fontSize="3xl" fontWeight="bold" color="#231911">{score}</Text>
+                    <Text color="#a99972" fontSize="sm">Vouch Score</Text>
+                    <Text mt={1} fontSize="3xl" fontWeight="bold" color="#f6ead1">{score}</Text>
                   </Box>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Credit Tier</Text>
+                    <Text color="#a99972" fontSize="sm">Credit Tier</Text>
                     <Text mt={1} fontSize="2xl" fontWeight="bold" color={tierColor}>{tier}</Text>
                   </Box>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Confidence Score</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#231911">{confidence.toFixed(2)}</Text>
+                    <Text color="#a99972" fontSize="sm">Confidence Score</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{confidence.toFixed(2)}</Text>
                   </Box>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Neighborhood Density</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#231911">{neighborhoodDensity}</Text>
+                    <Text color="#a99972" fontSize="sm">Neighborhood Density</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{neighborhoodDensity}</Text>
                   </Box>
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="Signal Summary" accent="#E25905">
+              <DetailCard title="Signal Summary">
                 <VStack align="stretch" spacing={4}>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Signal Count</Text>
-                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#231911">{signalCount}</Text>
+                    <Text color="#a99972" fontSize="sm">Signal Count</Text>
+                    <Text mt={1} fontSize="2xl" fontWeight="bold" color="#f6ead1">{signalCount}</Text>
                   </Box>
                   <Box>
-                    <Text color="#8f6f54" fontSize="sm">Trust Note</Text>
-                    <Text mt={2} color="#6f5242">
+                    <Text color="#a99972" fontSize="sm">Trust Note</Text>
+                    <Text mt={2} color="#b7ab8b">
                       Higher Vouch scores naturally align with denser surrounding neighborhood trust activity.
                     </Text>
                   </Box>
@@ -265,34 +258,34 @@ export default function MoreInfoPage() {
 
           <GridItem>
             <VStack spacing={6} align="stretch">
-              <DetailCard title="Reasons Inducing The Score" accent="#980002">
+              <DetailCard title="Reasons Inducing The Score">
                 <VStack align="stretch" spacing={4}>
                   {scoreReasons.map((item) => (
-                    <Box key={item.title} p={4} borderWidth="1px" borderRadius="20px" bg="rgba(255,255,255,0.62)">
-                      <Text fontWeight="bold" color="#231911">{item.title}</Text>
-                      <Text mt={2} color="#6f5242">{item.detail}</Text>
+                    <Box key={item.title} p={4} borderWidth="1px" borderRadius="20px" bg="rgba(255,255,255,0.02)">
+                      <Text fontWeight="bold" color="#f6ead1">{item.title}</Text>
+                      <Text mt={2} color="#b7ab8b">{item.detail}</Text>
                     </Box>
                   ))}
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="High Weightage Flags" accent="#C90000">
+              <DetailCard title="High Weightage Flags">
                 <VStack align="stretch" spacing={3}>
                   {highWeightFlags.map((flag) => (
                     <HStack key={flag} align="flex-start">
-                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#C90000" />
-                      <Text color="#3c2d23">{flag}</Text>
+                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#ff6b6b" />
+                      <Text color="#f6ead1">{flag}</Text>
                     </HStack>
                   ))}
                 </VStack>
               </DetailCard>
 
-              <DetailCard title="Most Frequent Transaction" accent="#EC8805">
+              <DetailCard title="Most Frequent Transaction">
                 <VStack align="stretch" spacing={3}>
                   {transactionInsights.map((item) => (
                     <HStack key={item} align="flex-start">
-                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#EC8805" />
-                      <Text color="#3c2d23">{item}</Text>
+                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#f6c45a" />
+                      <Text color="#f6ead1">{item}</Text>
                     </HStack>
                   ))}
                 </VStack>
@@ -302,20 +295,20 @@ export default function MoreInfoPage() {
                 p={[6, 7]}
                 borderWidth="1px"
                 borderRadius="30px"
-                bg="linear-gradient(135deg, rgba(242,158,8,0.18) 0%, rgba(226,89,5,0.14) 46%, rgba(152,0,2,0.12) 100%)"
-                boxShadow="0 22px 38px rgba(226, 89, 5, 0.10)"
+                bg="linear-gradient(135deg, rgba(246,196,90,0.18) 0%, rgba(246,196,90,0.10) 36%, rgba(16,18,24,0.96) 100%)"
+                boxShadow="0 22px 38px rgba(0, 0, 0, 0.35)"
                 position="relative"
                 overflow="hidden"
               >
-                <Box position="absolute" top="-32px" right="-24px" w="140px" h="140px" borderRadius="full" bg="rgba(255,255,255,0.18)" />
-                <Text color="#68030E" fontSize="sm" letterSpacing="0.16em" mb={4} fontWeight="bold">
+                <Box position="absolute" top="-32px" right="-24px" w="140px" h="140px" borderRadius="full" bg="rgba(246,196,90,0.12)" />
+                <Text color="#f6c45a" fontSize="sm" letterSpacing="0.16em" mb={4} fontWeight="bold">
                   AI RECOMMENDATION TO IMPROVE YOUR VOUCH SCORE
                 </Text>
                 <VStack align="stretch" spacing={3} position="relative">
                   {aiRecommendations.map((item) => (
-                    <HStack key={item} align="flex-start" p={3} borderRadius="18px" bg="rgba(255,250,241,0.72)">
-                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#F29E08" />
-                      <Text color="#2f1d14" fontWeight="medium">{item}</Text>
+                    <HStack key={item} align="flex-start" p={3} borderRadius="18px" bg="rgba(16,18,24,0.64)">
+                      <Box mt={1} w="10px" h="10px" borderRadius="full" bg="#f6c45a" />
+                      <Text color="#f6ead1" fontWeight="medium">{item}</Text>
                     </HStack>
                   ))}
                 </VStack>
@@ -331,10 +324,10 @@ export default function MoreInfoPage() {
             h="56px"
             px={9}
             borderRadius="999px"
-            bg="#F29E08"
-            color="#2a1608"
+            bg="#f6c45a"
+            color="#17130b"
             fontWeight="bold"
-            _hover={{ bg: "#EC8805" }}
+            _hover={{ bg: "#ffd67d" }}
           >
             Back To Landing Page
           </Button>

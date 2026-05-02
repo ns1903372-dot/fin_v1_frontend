@@ -1,83 +1,83 @@
-import Spline from "@splinetool/react-spline";
-import { Box, Container, Grid, GridItem, Text, VStack } from "@chakra-ui/react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Box, Container } from "@chakra-ui/react";
 import { ScoreForm } from "@/components/ScoreForm";
+import { TiltCardImage } from "@/components/TiltCardImage";
 import { TopNav } from "@/components/TopNav";
-import { useThemeMode } from "@/components/theme-mode";
+
+const MotionBox = motion(Box);
 
 export default function LandingPage() {
-  const { palette, mode } = useThemeMode();
+  const visualRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: visualRef,
+    offset: ["start start", "end start"],
+  });
+  const imageOpacity = useTransform(scrollYProgress, [0, 0.32, 0.62, 1], [1, 0.82, 0.28, 0]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, -36]);
+  const imageScale = useTransform(scrollYProgress, [0, 0.7, 1], [1, 0.985, 0.96]);
 
   return (
     <Container maxW="container.xl" py={[5, 8]} px={[4, 6]}>
       <TopNav />
 
-      <Grid mt={8} templateColumns={["1fr", null, "1.02fr 0.98fr"]} gap={[6, 8]} alignItems="stretch">
-        <GridItem>
+      <Box
+        ref={visualRef}
+        mt={8}
+        p={[4, 5]}
+        borderWidth="1px"
+        borderRadius="34px"
+        bg="rgba(16, 18, 24, 0.96)"
+        boxShadow="0 28px 70px rgba(0, 0, 0, 0.38)"
+        overflow="hidden"
+        minH={["360px", "440px", "540px"]}
+        position="relative"
+      >
+        <MotionBox
+          h="100%"
+          minH={["320px", "400px", "500px"]}
+          borderWidth="1px"
+          borderRadius="26px"
+          overflow="hidden"
+          bg="#050505"
+          position="relative"
+          style={{ opacity: imageOpacity }}
+        >
           <Box
-            p={[6, 8]}
-            borderWidth="1px"
-            borderRadius="34px"
-            bg={palette.cardBg}
-            boxShadow={palette.cardShadow}
-            position="relative"
-            h="100%"
-          >
-            <VStack align="stretch" spacing={7} position="relative">
-              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs">
-                01. LANDING PAGE
-              </Text>
-
-              <Box>
-                <Text fontSize={["4xl", "5xl", "6xl"]} lineHeight="1.05" fontWeight="bold" maxW="720px" color={palette.pageText}>
-                  AI Credit Intelligence for the{" "}
-                  <Text as="span" color={palette.accentSoft}>
-                    Invisible Economy
-                  </Text>
-                </Text>
-                <Text color={palette.mutedText} mt={5} maxW="620px" fontSize="lg">
-                  Axiom turns behavioral finance signals into explainable trust scores with the same backend you already built.
-                </Text>
-              </Box>
-            </VStack>
-          </Box>
-        </GridItem>
-
-        <GridItem>
-          <Box
-            p={[4, 5]}
-            borderWidth="1px"
-            borderRadius="34px"
-            bg={palette.cardBg}
-            boxShadow={palette.cardShadow}
-            overflow="hidden"
-            h="100%"
-            minH={["340px", "380px", "420px"]}
-            position="relative"
+            position="absolute"
+            inset="0"
+            bg="radial-gradient(circle at 50% 24%, rgba(246,196,90,0.16) 0%, rgba(246,196,90,0.04) 24%, rgba(0,0,0,0) 54%), linear-gradient(180deg, rgba(8,8,8,0.86) 0%, rgba(4,4,4,0.96) 100%)"
+          />
+          <MotionBox
+            position="absolute"
+            inset="0"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            px={[4, 8]}
+            style={{ y: imageY, scale: imageScale }}
           >
             <Box
-              h="100%"
-              borderWidth="1px"
-              borderRadius="26px"
-              overflow="hidden"
-              bg={mode === "dark" ? "#050505" : "#fff6ea"}
+              w="100%"
+              maxW={["380px", "460px", "540px"]}
               position="relative"
+              opacity={0.84}
             >
-              <Spline scene="https://prod.spline.design/CCxvWVM0B1wGqJzX/scene.splinecode" />
-              <Box
-                position="absolute"
-                right="8px"
-                bottom="8px"
-                w="120px"
-                h="34px"
-                borderRadius="14px"
-                bg={mode === "dark" ? "#050505" : "#fff6ea"}
-                zIndex={3}
-                pointerEvents="none"
+              <TiltCardImage
+                src="/landing-credit-card-transparent.png"
+                alt="Vouch landing credit card"
+                width={320}
               />
             </Box>
-          </Box>
-        </GridItem>
-      </Grid>
+          </MotionBox>
+          <Box
+            position="absolute"
+            inset="auto 0 0 0"
+            h="86px"
+            bg="linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(5,5,5,0.68) 46%, rgba(5,5,5,0.96) 100%)"
+          />
+        </MotionBox>
+      </Box>
 
       <Box mt={10}>
         <ScoreForm

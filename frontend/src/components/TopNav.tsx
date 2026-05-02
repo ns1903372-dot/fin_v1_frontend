@@ -1,9 +1,9 @@
-import { Box, Button, HStack, Link, Text } from "@chakra-ui/react";
+import { Box, HStack, Link, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useThemeMode } from "@/components/theme-mode";
 
 export function TopNav() {
-  const { mode, palette, toggleMode } = useThemeMode();
+  const { palette } = useThemeMode();
 
   return (
     <Box
@@ -34,32 +34,6 @@ export function TopNav() {
           <Link as={NextLink} href="/more-info" _hover={{ color: palette.accentSoft }}>
             More Info
           </Link>
-        </HStack>
-        <HStack spacing={3}>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            borderRadius="999px"
-            borderColor={palette.inputBorder}
-            color={palette.navText}
-            bg="transparent"
-            _hover={{ borderColor: palette.accent, color: palette.navAccent }}
-            onClick={toggleMode}
-          >
-            {mode === "light" ? "Dark Theme" : "Light Theme"}
-          </Button>
-          <Button
-            as={NextLink}
-            href="/landing"
-            size="sm"
-            bg={palette.buttonBg}
-            color={palette.buttonText}
-            borderRadius="999px"
-            _hover={{ bg: palette.buttonHover }}
-          >
-            Get Started
-          </Button>
         </HStack>
       </HStack>
     </Box>

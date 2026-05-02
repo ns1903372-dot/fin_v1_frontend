@@ -26,7 +26,7 @@ function AppShell({ Component, pageProps }: AppProps) {
 
       timeoutId = setTimeout(() => {
         setIsTransitioning(false);
-      }, 720);
+      }, 1520);
     }
 
     router.events.on("routeChangeStart", handleRouteStart);
@@ -52,7 +52,7 @@ function AppShell({ Component, pageProps }: AppProps) {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -18 }}
-          transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.92, ease: [0.22, 1, 0.36, 1] }}
         >
           <Component {...pageProps} />
         </motion.div>

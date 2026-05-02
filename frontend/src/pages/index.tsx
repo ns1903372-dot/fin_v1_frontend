@@ -1,45 +1,22 @@
 import { useEffect, useState } from "react";
-import NextLink from "next/link";
-import {
-  motion,
-  useMotionValue,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
-import { Box, Button, Container, Input, Text, VStack } from "@chakra-ui/react";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Box, Button, Container, Flex, Grid, GridItem, Input, Text, VStack } from "@chakra-ui/react";
 import { TopNav } from "@/components/TopNav";
-import { useThemeMode } from "@/components/theme-mode";
+
+const MotionBox = motion(Box);
 
 export default function Home() {
-  const { palette, mode } = useThemeMode();
+  const router = useRouter();
   const { scrollYProgress } = useScroll();
   const [userId, setUserId] = useState("");
-
-  const rawYCard = useTransform(scrollYProgress, [0, 1], [0, -350]);
-  const yCard = useSpring(rawYCard, { stiffness: 70, damping: 18 });
-
-  const rawRotateCard = useTransform(scrollYProgress, [0, 1], [0, 16]);
-  const rotateCard = useSpring(rawRotateCard, { stiffness: 60, damping: 20 });
-
-  const rawYHand = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  const yHand = useSpring(rawYHand, { stiffness: 50, damping: 25 });
-
-  const rawRotateHand = useTransform(scrollYProgress, [0, 1], [0, -6]);
-  const rotateHand = useSpring(rawRotateHand, { stiffness: 50, damping: 25 });
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useSpring(useTransform(mouseY, [-300, 300], [8, -8]), {
-    stiffness: 100,
-    damping: 20,
-  });
-
-  const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-8, 8]), {
-    stiffness: 100,
-    damping: 20,
-  });
+  const [isNavigating, setIsNavigating] = useState(false);
+  const yHand = useTransform(scrollYProgress, [0, 1], [0, -52]);
+  const yCard = useTransform(scrollYProgress, [0, 1], [0, -112]);
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 4]);
+  const cardLift = useTransform(scrollYProgress, [0, 1], [0, -18]);
+  const cardScale = useTransform(scrollYProgress, [0, 1], [0.985, 1.018]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -56,73 +33,54 @@ export default function Home() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("vouch_user_id", userId.trim());
     }
-  }
 
-  function handleMouseMove(event: React.MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
+    if (isNavigating) {
+      return;
+    }
 
-    mouseX.set(x);
-    mouseY.set(y);
-  }
-
-  function handleMouseLeave() {
-    mouseX.set(0);
-    mouseY.set(0);
+    setIsNavigating(true);
+    window.setTimeout(() => {
+      router.push("/landing");
+    }, 180);
   }
 
   return (
     <Container maxW="container.xl" py={[5, 8]} px={[4, 6]}>
       <TopNav />
 
-      <Box
-        position="relative"
-        overflow="hidden"
-        borderWidth="1px"
-        borderRadius="34px"
-        bg={palette.cardBg}
-        boxShadow={palette.cardShadow}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
-        <Box
-          position="absolute"
-          top={mode === "dark" ? "22%" : "28%"}
-          right={mode === "dark" ? "16%" : "20%"}
-          w={["360px", "520px", "700px"]}
-          h={["360px", "520px", "700px"]}
-          borderRadius="full"
-          bg={palette.heroGlow}
-          filter="blur(28px)"
-          opacity={mode === "dark" ? 1 : 0.95}
-        />
-
-        <Box minH="200vh" position="relative">
-          <Box position="sticky" top="0" h="100vh" display="flex" alignItems="center" justifyContent="center">
-            <VStack
+      <Grid templateColumns={["1fr", null, "1.1fr 0.9fr"]} gap={[8, 10]} alignItems="stretch">
+        <GridItem>
+          <Box
+            p={[7, 9]}
+            borderWidth="1px"
+            borderRadius="34px"
+            bg="rgba(16, 18, 24, 0.92)"
+            minH="100%"
+            position="relative"
+            overflow="hidden"
+          >
+            <Box
               position="absolute"
-              left={["24px", "48px", "80px"]}
-              maxW="520px"
-              align="flex-start"
-              spacing={5}
-              zIndex={10}
-            >
-              <Text color={palette.accent} letterSpacing="0.18em" fontSize="xs">
-                VOUCH PLATFORM
-              </Text>
-              <Text fontSize={["4xl", "5xl", "6xl"]} lineHeight="1.02" fontWeight="bold" color={palette.pageText}>
-                Smarter Trust Scoring for the{" "}
-                <Text as="span" color={palette.accentSoft}>
-                  Invisible Economy
+              inset="auto -90px -90px auto"
+              w="320px"
+              h="320px"
+              borderRadius="full"
+              bg="radial-gradient(circle, rgba(246,196,90,0.24) 0%, rgba(246,196,90,0) 70%)"
+            />
+            <VStack align="stretch" spacing={7} position="relative">
+              <Box>
+                <Text fontSize={["4xl", "5xl", "6xl"]} lineHeight="1.02" fontWeight="bold" maxW="760px">
+                  Build Trust Scores for the{" "}
+                  <Text as="span" color="#f6c45a">
+                    Invisible Economy
+                  </Text>
                 </Text>
-              </Text>
-              <Text color={palette.mutedText} fontSize="lg" maxW="460px">
-                Analyze behavior, detect fraud, and build trust instantly with a smoother Vouch experience across every page.
-              </Text>
-
-              <Box w="100%" maxW="420px">
-                <Text color={palette.pageText} mb={3} fontWeight="semibold">
+                <Text color="#c7b894" mt={5} maxW="620px" fontSize="lg">
+                  Start from a clean home page, then move into the real landing experience only when you click `Get Started`.
+                </Text>
+              </Box>
+              <Box maxW="420px">
+                <Text color="#e8d7ac" mb={3} fontWeight="semibold">
                   User ID
                 </Text>
                 <Input
@@ -131,73 +89,108 @@ export default function Home() {
                   placeholder="user_123_abc"
                   h="56px"
                   borderRadius="18px"
-                  bg={palette.inputBg}
-                  color={palette.inputText}
-                  borderColor={palette.inputBorder}
-                  _placeholder={{ color: palette.mutedText }}
+                  bg="rgba(10, 12, 16, 0.95)"
+                  color="#f8eed7"
+                  borderColor="rgba(246,196,90,0.22)"
                 />
               </Box>
-
               <Button
-                as={NextLink}
-                href="/landing"
                 onClick={handleGetStarted}
+                alignSelf="flex-start"
                 h="58px"
                 px={9}
                 borderRadius="18px"
-                bg={palette.buttonBg}
-                color={palette.buttonText}
-                _hover={{ bg: palette.buttonHover }}
+                bg="#f6c45a"
+                color="#17130b"
+                _hover={{ bg: "#ffd67d" }}
+                isLoading={isNavigating}
+                loadingText="Opening"
               >
                 Get Started
               </Button>
             </VStack>
-
-            <Box
-              position="absolute"
-              right={["-8px", "20px", "70px"]}
-              w={["360px", "500px", "620px"]}
-              h={["360px", "500px", "620px"]}
-              borderRadius="32px"
-              bg={palette.heroStageBg}
-              borderWidth="1px"
-              borderColor={palette.inputBorder}
-              overflow="hidden"
-            >
-              <motion.img
-                src="/gold-hand-transparent.png"
-                alt="Golden hand"
-                style={{ y: yHand, rotate: rotateHand }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute right-0 bottom-0 w-[480px] md:w-[560px] lg:w-[620px]"
-              />
-
-              <motion.img
-                src="/credit-card-transparent.png"
-                alt="Credit card"
-                style={{
-                  y: yCard,
-                  rotate: rotateCard,
-                  rotateX,
-                  rotateY,
-                }}
-                animate={{ y: [0, -20, 0] }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute right-[70px] top-[19%] w-[250px] md:w-[300px] lg:w-[340px] origin-bottom-left rotate-[12deg]"
-              />
-            </Box>
           </Box>
-        </Box>
-      </Box>
+        </GridItem>
+
+        <GridItem>
+          <Box
+            p={[7, 8]}
+            borderWidth="1px"
+            borderRadius="34px"
+            bg="#020202"
+            minH="100%"
+            position="relative"
+            overflow="hidden"
+          >
+            <Text color="#f6c45a" letterSpacing="0.18em" fontSize="xs" mb={4}>
+              VOUCH VISUAL ENGINE
+            </Text>
+            <Flex justify="center" align="center" minH={["320px", "380px", "460px"]} position="relative">
+              <Box
+                position="absolute"
+                inset="8% 8% 8% 8%"
+                borderRadius="28px"
+                bg="radial-gradient(circle at 62% 42%, rgba(255,186,64,0.08), transparent 24%), radial-gradient(circle at 38% 64%, rgba(255,224,149,0.06), transparent 28%), linear-gradient(180deg, rgba(8,8,8,0.82) 0%, rgba(1,1,1,0.96) 100%)"
+              />
+
+              <MotionBox
+                position="relative"
+                w="100%"
+                maxW="430px"
+                style={{ y: yHand, rotate }}
+                zIndex={2}
+                filter="drop-shadow(0 42px 48px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 24px rgba(246, 196, 90, 0.22))"
+              >
+                <Image
+                  src="/gold-hand-transparent.png"
+                  alt="Golden hand"
+                  width={520}
+                  height={420}
+                  style={{ width: "100%", height: "auto", objectFit: "contain" }}
+                  priority
+                />
+
+                <MotionBox
+                  position="absolute"
+                  top="43.5%"
+                  right="14%"
+                  w={["128px", "168px"]}
+                  h={["88px", "112px"]}
+                  zIndex={2}
+                  borderRadius="24px"
+                  bg="radial-gradient(circle at 35% 50%, rgba(246,196,90,0.24), rgba(246,196,90,0.02) 58%, rgba(0,0,0,0) 80%)"
+                  filter="blur(12px)"
+                  style={{ y: cardLift }}
+                />
+
+                <MotionBox
+                  position="absolute"
+                  top="41.5%"
+                  right="13.5%"
+                  w={["152px", "195px"]}
+                  zIndex={3}
+                  style={{ y: yCard, rotate, scale: cardScale }}
+                  filter="drop-shadow(0 28px 42px rgba(0, 0, 0, 0.46)) drop-shadow(0 0 22px rgba(246, 196, 90, 0.22))"
+                >
+                  <Image
+                    src="/credit-card-transparent.png"
+                    alt="Credit card"
+                    width={260}
+                    height={180}
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      objectFit: "contain",
+                      transform: "perspective(900px) rotate(-14deg) rotateX(12deg) rotateY(-10deg)",
+                      transformOrigin: "bottom left",
+                    }}
+                  />
+                </MotionBox>
+              </MotionBox>
+            </Flex>
+          </Box>
+        </GridItem>
+      </Grid>
     </Container>
   );
 }

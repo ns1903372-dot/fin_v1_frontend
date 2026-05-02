@@ -23,7 +23,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.4 }}
         >
           <MotionBox
             position="absolute"
@@ -32,7 +32,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
             initial={{ clipPath: "inset(0 100% 0 0 round 0px)" }}
             animate={{ clipPath: "inset(0 0% 0 0 round 0px)" }}
             exit={{ clipPath: "inset(0 0 0 100% round 0px)" }}
-            transition={{ duration: 1.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 2.25, ease: [0.22, 1, 0.36, 1] }}
           />
 
           <MotionBox
@@ -45,7 +45,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
             initial={{ x: 0, rotate: -4, scale: 0.98 }}
             animate={{ x: "calc(100vw + 720px)", rotate: 1, scale: 1.02 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 2.25, ease: [0.22, 1, 0.36, 1] }}
             filter={mode === "dark"
               ? "drop-shadow(0 28px 44px rgba(0, 0, 0, 0.38))"
               : "drop-shadow(0 28px 44px rgba(104, 3, 14, 0.18))"}
@@ -59,7 +59,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
               inset="0"
               bg="linear-gradient(115deg, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0) 50%)"
               animate={{ x: ["-12%", "20%"] }}
-              transition={{ duration: 1.12, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 1.9, repeat: Infinity, ease: "easeInOut" }}
             />
             <Box position="absolute" top="26px" left="30px" color={mode === "dark" ? "rgba(63,43,5,0.88)" : "rgba(255,248,233,0.92)"}>
               <Text fontSize="sm" fontWeight="bold" letterSpacing="0.12em">
@@ -110,7 +110,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
             initial={{ x: 0, opacity: 0 }}
             animate={{ x: "calc(100vw + 420px)", opacity: [0, 1, 0] }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
           />
 
           <MotionBox
@@ -122,7 +122,7 @@ export function PageTransitionOverlay({ active }: PageTransitionOverlayProps) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.34, delay: 0.12 }}
+            transition={{ duration: 0.55, delay: 0.22 }}
           >
             <Text color={palette.transitionLabel} letterSpacing="0.22em" fontSize="xs" fontWeight="bold">
               SWIPING INTO NEXT VIEW
