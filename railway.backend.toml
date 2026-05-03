@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "Dockerfile.backend"
 watchPatterns = [
   "/api/**",
   "/graph/**",
@@ -9,7 +9,7 @@ watchPatterns = [
   "/storage/**",
   "/tests/**",
   "/pyproject.toml",
-  "/Dockerfile",
+  "/Dockerfile.backend",
   "/railway.backend.toml",
   "/.dockerignore"
 ]

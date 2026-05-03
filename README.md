@@ -1,3 +1,12 @@
+---
+title: Axiom Credit Demo
+emoji: "💳"
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+---
+
 # Axiom Credit Scoring Platform
 
 A production-grade Python monorepo implementing the **Axiom credit scoring platform** for thin-file users in India. Axiom combines Account Aggregator (AA) data, graph neural networks, and behavioral analysis to generate trustworthy credit scores in the 300-900 range for users with minimal historical credit records.
