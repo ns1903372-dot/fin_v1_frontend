@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000",
+  // Default to the Next.js proxy routes so the browser only talks to the frontend origin.
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api/backend",
   headers: {
     "Content-Type": "application/json",
   },

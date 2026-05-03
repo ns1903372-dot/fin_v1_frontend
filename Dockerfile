@@ -10,12 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY pyproject.toml pyproject.toml
-
-# Install Python dependencies using pip (poetry would be overkill for Docker)
-RUN pip install --no-cache-dir -e .
-
 # Copy application code
 COPY . .
 
@@ -28,7 +22,10 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD sh -c 'curl -f http://localhost:${PORT:-8000}/health || exit 1'
+
+# Install Python dependencies after the source tree is available for editable install.
+RUN pip install --no-cache-dir -e .
 
 # Run application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
